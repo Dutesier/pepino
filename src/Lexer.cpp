@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -28,28 +28,25 @@ bool isDigit(char c)
     return c >= '0' && c <= '9';
 }
 
-bool isAlpha(char c)
+bool isWhitespace(char c)
 {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+    return c == ' ' || c == '\r' || c == '\t' || c == '\n';
 }
 
-bool isAlphaNumeric(char c)
-{
-    return isAlpha(c) || isDigit(c);
-}
-
-const std::unordered_map<std::string_view, lox::TokenType> KeywordsMap{
-    { "and", lox::TokenType::And },     { "class", lox::TokenType::Class },   { "else", lox::TokenType::Else },
-    { "false", lox::TokenType::False }, { "for", lox::TokenType::For },       { "fun", lox::TokenType::Fun },
-    { "if", lox::TokenType::If },       { "nil", lox::TokenType::Nil },       { "or", lox::TokenType::Or },
-    { "print", lox::TokenType::Print }, { "return", lox::TokenType::Return }, { "super", lox::TokenType::Super },
-    { "this", lox::TokenType::This },   { "true", lox::TokenType::True },     { "var", lox::TokenType::Var },
-    { "while", lox::TokenType::While }
-};
+const std::unordered_map<std::string_view, pep::TokenType> KeywordsMap{ { "And", pep::TokenType::And },
+                                                                        { "Feature:", pep::TokenType::Feature },
+                                                                        { "Background:", pep::TokenType::Background },
+                                                                        { "Scenario:", pep::TokenType::Scenario },
+                                                                        { "ScenarioOutline:",
+                                                                          pep::TokenType::ScenarioOutline },
+                                                                        { "Examples", pep::TokenType::Examples },
+                                                                        { "Given", pep::TokenType::Given },
+                                                                        { "When", pep::TokenType::When },
+                                                                        { "Then", pep::TokenType::Then } };
 
 } // namespace
 
-namespace lox
+namespace pep
 {
 
 Lexer::Lexer(std::string_view source)
@@ -94,69 +91,18 @@ Token Lexer::getNextToken()
 
     using enum TokenType;
     char c = advance();
-    // Logger::debug(std::format("Evalutating {}", c));
+    Logger::debug(std::format("Evaluating {}", c));
     switch (c)
     {
-    case '(':
-        return Token{ LeftParen, std::monostate{}, "", m_line };
-    case ')':
-        return Token{ RightParen, std::monostate{}, "", m_line };
-    case '{':
-        return Token{ LeftBrace, std::monostate{}, "", m_line };
-    case '}':
-        return Token{ RightBrace, std::monostate{}, "", m_line };
-    case ',':
-        return Token{ Comma, std::monostate{}, "", m_line };
-    case '.':
-        return Token{ Dot, std::monostate{}, "", m_line };
-    case '-':
-        return Token{ Minus, std::monostate{}, "", m_line };
-    case '+':
-        return Token{ Plus, std::monostate{}, "", m_line };
-    case ';':
-        return Token{ Semicolon, std::monostate{}, "", m_line };
-    case '*':
-        return Token{ Star, std::monostate{}, "", m_line };
+    case '|':
+        return Token{ .type = Pipe, .lineNo = m_line };
     case '!':
-        if (match('='))
-        {
-            advance();
-            return Token{ BangEqual, std::monostate{}, "", m_line };
-        }
-        return Token{ Bang, std::monostate{}, "", m_line };
-    case '=':
-        if (match('='))
-        {
-            advance();
-            return Token{ EqualEqual, std::monostate{}, "", m_line };
-        }
-        return Token{ Equal, std::monostate{}, "", m_line };
-    case '<':
-        if (match('='))
-        {
-            advance();
-            return Token{ LessEqual, std::monostate{}, "", m_line };
-        }
-        return Token{ Less, std::monostate{}, "", m_line };
-    case '>':
-        if (match('='))
-        {
-            advance();
-            return Token{ GreaterEqual, std::monostate{}, "", m_line };
-        }
-        return Token{ Greater, std::monostate{}, "", m_line };
-    case '/':
-        if (match('/')) // Comments
+        if (match('-') && peekNext() == '-')
         {
             advanceUntilEndOfLine();
             return rerun();
         }
-        else if (match('*')) // Multiline comments
-        {
-            advanceUntilEndOfComment();
-            return rerun();
-        }
-        return Token{ Slash, std::monostate{}, "", m_line };
+        return Token{ .type = Identifier, .location = "!", .lineNo = m_line };
     case ' ':
     case '\r':
     case '\t':
@@ -167,20 +113,17 @@ Token Lexer::getNextToken()
         return rerun();
 
     // Literals
-    case '"':
-        return getStringToken();
+    // case '"':
+    //     return getStringToken();
     default:
         if (isDigit(c))
         {
             return getNumberToken();
         }
-        else if (isAlpha(c))
-        {
-            return getIdentifierToken();
-        }
+        return getIdentifierToken();
     }
     Logger::error(std::format("[Line {}] Unexpected character -> {}.", m_line, c));
-    return Token{ Error, std::monostate{}, std::string{ c }, m_line }; // Maybe throw here???
+    return Token{ .type = Error, .location = std::string{ c }, .lineNo = m_line }; // Maybe throw here???
 }
 
 Token Lexer::rerun()
@@ -189,40 +132,9 @@ Token Lexer::rerun()
     return getNextToken();
 }
 
-Token Lexer::getStringToken()
-{
-    // Get to end of string
-    while (peek() != '"')
-    {
-        if (isAtEnd())
-        {
-            return Token{ Error, std::monostate{}, "Unterminated string.", m_line }; // Maybe throw here???
-        }
-        if (peek() == '\n')
-        {
-            m_line++;
-        }
-        advance();
-    }
-
-    if (advance() != '"') // The closing '"'
-    {
-        return Token{ Error, std::monostate{}, "Unterminated string.", m_line }; // Maybe throw here???
-    }
-
-    // Logger::debug(std::format(
-    //     "Building token with value {}, from index {} to index {}",
-    //     std::string{ m_source.substr(m_start + 1, m_current - (m_start + 1) - 1) },
-    //     m_start + 1,
-    //     m_current - (m_start + 1) - 1));
-    return Token{
-        String, std::string{ m_source.substr(m_start + 1, m_current - (m_start + 1) - 1) }, "", m_line
-    }; // Maybe throw here???
-}
-
 Token Lexer::getNumberToken()
 {
-    // In Lox every number is double!
+    // In Pepino every number is double!
     while (isDigit(peek()))
     {
         advance();
@@ -261,7 +173,7 @@ Token Lexer::getNumberToken()
 
 Token Lexer::getIdentifierToken()
 {
-    while (isAlphaNumeric(peek()))
+    while (!isWhitespace(peek()) && !isAtEnd() && !match('|') && !isDigit(peek()))
     {
         advance();
     }
@@ -271,7 +183,7 @@ Token Lexer::getIdentifierToken()
     if (KeywordsMap.contains(text))
     {
         type = KeywordsMap.at(text);
-        return Token{ type, std::monostate{} };
+        return Token{ type };
     }
     return Token{ type, text };
 }
@@ -303,21 +215,6 @@ void Lexer::advanceUntilEndOfLine()
     }
 }
 
-void Lexer::advanceUntilEndOfComment()
-{
-    advance(); // consume the / in /*
-    advance(); // consume the * in /*
-    while (peek() != '*' && !isAtEnd() && peekNext() != '/')
-    {
-        if ('\n' == advance())
-        {
-            m_line++;
-        }
-    }
-    advance(); // consume the * in */
-    advance(); // consume the / in */
-}
-
 char Lexer::peek()
 {
     constexpr char NullTerminator = '\0';
@@ -338,4 +235,4 @@ char Lexer::peekNext()
     return m_source.at(m_current + 1);
 }
 
-} // namespace lox
+} // namespace pep

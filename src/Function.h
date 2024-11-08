@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -20,7 +20,7 @@
 #include "Environment.h"
 #include "Object.h"
 
-namespace lox
+namespace pep
 {
 
 class Function : public Callable
@@ -33,4 +33,4 @@ private:
     std::shared_ptr<Environment> closure;
 };
 
-} // namespace lox
+} // namespace pep

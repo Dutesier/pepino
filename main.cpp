@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -16,18 +16,18 @@
 
 // FOR TESTING ONLY
 
-#include "lox.h"
+#include "pepino.h"
 
 int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        return lox::run();
+        return pep::run();
     }
 
     if (std::string filepath = { argv[1] }; !filepath.empty())
     {
-        return lox::run(filepath);
+        return pep::run(filepath);
     }
 
     return EXIT_FAILURE;

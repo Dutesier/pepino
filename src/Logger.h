@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -20,7 +20,7 @@
 #include <iostream>
 #include <string_view>
 
-namespace lox
+namespace pep
 {
 
 struct Logger
@@ -43,4 +43,4 @@ private:
     static void log(LogLevel level, std::string_view data);
 };
 
-} // namespace lox
+} // namespace pep

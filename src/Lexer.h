@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -21,7 +21,7 @@
 #include <string_view>
 #include <vector>
 
-namespace lox
+namespace pep
 {
 
 class Lexer
@@ -55,4 +55,4 @@ private:
     unsigned int m_line = 1;
 };
 
-} // namespace lox
+} // namespace pep

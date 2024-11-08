@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -37,13 +37,13 @@
 #include <variant>
 #include <vector>
 
-namespace lox
+namespace pep
 {
 
 namespace
 {
 
-// Follows Lox (Ruby)s convention
+// Follows Pepino (Ruby)s convention
 bool isTruthy(const Object& value)
 {
     if (std::holds_alternative<bool>(value))
@@ -500,17 +500,4 @@ void Interpreter::executeCodeBlock(const std::vector<StatementUPTR>& body, std::
     m_env->debug();
 }
 
-void Interpreter::resolve(const VariableExpression& expr, int depth)
-{
-    m_localVarDeclaration[std::make_shared<VariableExpression>(expr)] = depth;
-}
-
-void Interpreter::resolve(const AssignmentExpression& expr, int depth)
-{
-    // TODO: Implement
-    (void)expr;
-    (void)depth;
-    // m_localVarAssignment[std::make_shared<AssignmentExpression>(expr)] = depth;
-}
-
-} // namespace lox
+} // namespace pep

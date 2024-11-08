@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -14,15 +14,27 @@
  *
  ******************************************************************************/
 
-#include "lox.h"
+#include "pepino.h"
+#include "Interpreter.h"
 
-#include <gtest/gtest.h>
+#include <iostream>
 
-class LoxTest : public testing::Test
+namespace pep
 {
-};
 
-TEST_F(LoxTest, loxCompiles)
+int run()
 {
-    lox::run();
+    return 0;
+    // Interpreter interpreter;
+    // return interpreter.run();
 }
+
+int run(const std::string& filepath)
+{
+    (void)filepath;
+    return 0;
+    // Interpreter interpreter(filepath);
+    // return interpreter.run();
+}
+
+} // namespace pep

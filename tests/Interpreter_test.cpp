@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -51,13 +51,13 @@ TEST_F(TestInterpreter, throwsOnEmptyPath)
 {
     std::filesystem::path path = "";
 
-    EXPECT_THROW(auto interpreter = lox::Interpreter(path), std::domain_error);
+    EXPECT_THROW(auto interpreter = pep::Interpreter(path), std::domain_error);
 }
 
 TEST_F(TestInterpreter, localHelloWorldFile)
 {
-    auto testData = gtestFile.parent_path() / "data/normal_lox.txt";
-    lox::Interpreter interpreter(testData);
+    auto testData = gtestFile.parent_path() / "data/normal_pepino.txt";
+    pep::Interpreter interpreter(testData);
     EXPECT_EQ(interpreter.run(), EXIT_SUCCESS);
 }
 
@@ -66,7 +66,7 @@ TEST_F(TestInterpreter, stdinReading)
     std::string simulatedStdin = "var Hello  = 42;\n";
     redirect_stdin(simulatedStdin);
 
-    lox::Interpreter interpreter;
+    pep::Interpreter interpreter;
 
     EXPECT_EQ(interpreter.run(), EXIT_SUCCESS);
 }

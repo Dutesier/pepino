@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox Interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Pepino Interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -16,7 +16,6 @@
 
 #include "../src/Lexer.h"
 
-#include <experimental/source_location>
 #include <gtest/gtest.h>
 #include <string_view>
 #include <vector>
@@ -33,29 +32,55 @@ protected:
 
 TEST_F(TestLexer, tokenizeHelloWorld)
 {
-    using enum lox::TokenType;
-    std::string_view HelloWorld = "// this is a comment\n(( )){} // grouping stuff\n!*+-/=<> <= == // operators";
-    std::vector<lox::Token> expectedTokens{};
-    expectedTokens.emplace_back(lox::Token{ LeftParen, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ LeftParen, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ RightParen, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ RightParen, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ LeftBrace, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ RightBrace, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Bang, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Star, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Plus, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Minus, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Slash, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Equal, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Less, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Greater, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ LessEqual, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ EqualEqual, std::monostate{} });
-    expectedTokens.emplace_back(lox::Token{ Eof, std::monostate{} });
-    lox::Lexer lex(HelloWorld);
+    using enum pep::TokenType;
+    std::string_view HelloWorld = "Feature: Hello, World!\n"
+                                  "  Scenario: Hello, World!\n"
+                                  "    Given I have a string\n"
+                                  "    When I print the string\n"
+                                  "    Then I should see the string\n"
+                                  "    And I should see that 42==42\n"
+                                  "!-- Unless its commented of course\n";
+    std::vector<pep::Token> expectedTokens{ pep::Token{ Feature, std::monostate{}, "", 1 },
+                                            pep::Token{ Identifier, std::monostate{}, "Hello", 1 },
+                                            pep::Token{ Identifier, std::monostate{}, "World", 1 },
+                                            pep::Token{ Scenario, std::monostate{}, "", 2 },
+                                            pep::Token{ Identifier, std::monostate{}, "Hello", 2 },
+                                            pep::Token{ Identifier, std::monostate{}, "World", 2 },
+                                            pep::Token{ Given, std::monostate{}, "", 3 },
+                                            pep::Token{ Identifier, "I", "", 3 },
+                                            pep::Token{ Identifier, "have", "", 3 },
+                                            pep::Token{ Identifier, "a", "", 3 },
+                                            pep::Token{ Identifier, "string", "", 3 },
+                                            pep::Token{ When, std::monostate{}, "", 4 },
+                                            pep::Token{ Identifier, "I", "", 4 },
+                                            pep::Token{ Identifier, "print", "", 4 },
+                                            pep::Token{ Identifier, "the", "", 4 },
+                                            pep::Token{ Identifier, "string", "", 4 },
+                                            pep::Token{ Then, std::monostate{}, "", 5 },
+                                            pep::Token{ Identifier, "I", "", 5 },
+                                            pep::Token{ Identifier, "should", "", 5 },
+                                            pep::Token{ Identifier, "see", "", 5 },
+                                            pep::Token{ Identifier, "the", "", 5 },
+                                            pep::Token{ Identifier, "string", "", 5 },
+                                            pep::Token{ And, std::monostate{}, "", 6 },
+                                            pep::Token{ Identifier, "I", "", 6 },
+                                            pep::Token{ Identifier, "should", "", 6 },
+                                            pep::Token{ Identifier, "see", "", 6 },
+                                            pep::Token{ Identifier, "that", "", 6 },
+                                            pep::Token{ Number, 42.0, "", 6 },
+                                            pep::Token{ Identifier, "==", "", 6 },
+                                            pep::Token{ Number, 42.0, "", 6 },
+                                            pep::Token{ Eof, std::monostate{}, "", 6 }
+
+    };
+    pep::Lexer lex(HelloWorld);
 
     auto output = lex.tokenize();
+    // Print the output
+    for (const auto& token : output)
+    {
+        std::cout << token.print() << std::endl;
+    }
 
     ASSERT_EQ(expectedTokens.size(), output.size());
     for (std::size_t i = 0; i < output.size(); ++i)
@@ -64,56 +89,99 @@ TEST_F(TestLexer, tokenizeHelloWorld)
     }
 }
 
-TEST_F(TestLexer, tokenizeDouble)
+TEST_F(TestLexer, tokenizeFeature)
 {
-    using enum lox::TokenType;
-    lox::Lexer lex("42.42");
+    using enum pep::TokenType;
+    std::string_view source = "Feature: Sample Feature\n";
+    std::vector<pep::Token> expectedTokens{ pep::Token{ Feature, std::monostate{}, "", 1 },
+                                            pep::Token{ Identifier, std::monostate{}, "Sample", 1 },
+                                            pep::Token{
+                                                Identifier,
+                                                std::monostate{},
+                                                "Feature",
+                                                1 }, // Intentional, keywords should be at the beginning of the line.
+                                            pep::Token{ Eof, std::monostate{}, "", 1 } };
+    pep::Lexer lex(source);
 
     auto output = lex.tokenize();
-    ASSERT_EQ(output.size(), 2);
-    double expected = 42.42;
-    auto expectedTok = lox::Token{ Number, expected, "", 1 };
-    ASSERT_EQ(output.at(0), expectedTok);
+    ASSERT_EQ(expectedTokens.size(), output.size());
+    for (std::size_t i = 0; i < output.size(); ++i)
+    {
+        EXPECT_EQ(output[i].type, expectedTokens[i].type);
+    }
 }
 
-TEST_F(TestLexer, tokenizeString)
+TEST_F(TestLexer, tokenizeScenario)
 {
-    using enum lox::TokenType;
-    lox::Lexer lex("\"a given string\"");
+    using enum pep::TokenType;
+    std::string_view source = "Scenario: Sample Scenario\n";
+    std::vector<pep::Token> expectedTokens{ pep::Token{ Scenario, std::monostate{}, "", 1 },
+                                            pep::Token{ Identifier, std::monostate{}, "Sample", 1 },
+                                            pep::Token{ Identifier, std::monostate{}, "Scenario", 1 },
+                                            pep::Token{ Eof, std::monostate{}, "", 1 } };
+    pep::Lexer lex(source);
 
     auto output = lex.tokenize();
-    ASSERT_EQ(output.size(), 2);
-    std::string expected = "a given string";
-    auto expectedTok = lox::Token{ String, expected, "", 1 };
-    ASSERT_EQ(output.at(0), expectedTok);
+    ASSERT_EQ(expectedTokens.size(), output.size());
+    for (std::size_t i = 0; i < output.size(); ++i)
+    {
+        EXPECT_EQ(output[i].type, expectedTokens[i].type);
+    }
 }
 
-TEST_F(TestLexer, tokenizeMultilineComment)
+TEST_F(TestLexer, tokenizeGivenWhenThen)
 {
-    using enum lox::TokenType;
-    lox::Lexer lex("\"a given string\" /* A multiline \n comment*/ 42 ");
+    using enum pep::TokenType;
+    std::string_view source = "Given I have a string\nWhen I print the string\nThen I should see the string\n";
+    std::vector<pep::Token> expectedTokens{
+        pep::Token{ Given, std::monostate{}, "", 1 }, pep::Token{ Identifier, "I", "", 1 },
+        pep::Token{ Identifier, "have", "", 1 },      pep::Token{ Identifier, "a", "", 1 },
+        pep::Token{ Identifier, "string", "", 1 },    pep::Token{ When, std::monostate{}, "", 2 },
+        pep::Token{ Identifier, "I", "", 2 },         pep::Token{ Identifier, "print", "", 2 },
+        pep::Token{ Identifier, "the", "", 2 },       pep::Token{ Identifier, "string", "", 2 },
+        pep::Token{ Then, std::monostate{}, "", 3 },  pep::Token{ Identifier, "I", "", 3 },
+        pep::Token{ Identifier, "should", "", 3 },    pep::Token{ Identifier, "see", "", 3 },
+        pep::Token{ Identifier, "the", "", 3 },       pep::Token{ Identifier, "string", "", 3 },
+        pep::Token{ Eof, std::monostate{}, "", 3 }
+    };
+    pep::Lexer lex(source);
 
     auto output = lex.tokenize();
-    ASSERT_EQ(output.size(), 3);
-    double expectedDouble = 42;
-    std::string expected = "a given string";
-    auto expectedTok = lox::Token{ String, expected, "", 1 };
-    auto expectedDoubleTok = lox::Token{ Number, expectedDouble, "", 2 };
-    ASSERT_EQ(output.at(0), expectedTok);
-    ASSERT_EQ(output.at(1), expectedDoubleTok);
+    ASSERT_EQ(expectedTokens.size(), output.size());
+    for (std::size_t i = 0; i < output.size(); ++i)
+    {
+        EXPECT_EQ(output[i].type, expectedTokens[i].type);
+    }
 }
 
-TEST_F(TestLexer, tokenizeTwoStrings)
+TEST_F(TestLexer, tokenizeNumbers)
 {
-    using enum lox::TokenType;
-    lox::Lexer lex("\"hello\" + \"world\"");
+    using enum pep::TokenType;
+    std::string_view source = "42 3.14\n";
+    std::vector<pep::Token> expectedTokens{ pep::Token{ Number, 42.0, "", 1 },
+                                            pep::Token{ Number, 3.14, "", 1 },
+                                            pep::Token{ Eof, std::monostate{}, "", 1 } };
+    pep::Lexer lex(source);
 
     auto output = lex.tokenize();
-    ASSERT_EQ(output.size(), 4);
-    std::string expectedOne = "hello";
-    std::string expectedTwo = "world";
-    auto expectedTokOne = lox::Token{ String, expectedOne, "", 1 };
-    auto expectedTokTwo = lox::Token{ String, expectedTwo, "", 1 };
-    ASSERT_EQ(output.at(0), expectedTokOne);
-    ASSERT_EQ(output.at(2), expectedTokTwo);
+    ASSERT_EQ(expectedTokens.size(), output.size());
+    for (std::size_t i = 0; i < output.size(); ++i)
+    {
+        EXPECT_EQ(output[i].type, expectedTokens[i].type);
+    }
+}
+
+TEST_F(TestLexer, tokenizeComments)
+{
+    using enum pep::TokenType;
+    std::string_view source = "!-- This is a comment\n";
+    std::vector<pep::Token> expectedTokens{ pep::Token{ Eof, std::monostate{}, "", 1 } };
+    pep::Lexer lex(source);
+
+    auto output = lex.tokenize();
+    ASSERT_EQ(expectedTokens.size(), output.size());
+    for (std::size_t i = 0; i < output.size(); ++i)
+    {
+        EXPECT_EQ(output[i].type, expectedTokens[i].type);
+    }
 }

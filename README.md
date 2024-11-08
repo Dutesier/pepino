@@ -1,137 +1,155 @@
-# Lox
 
-Welcome to the **Lox Interpreter** project! This repository contains an implementation of the Lox programming language interpreter, developed as an exercise based on the book [*Crafting Interpreters* by Robert Nystrom](http://www.craftinginterpreters.com/). 
+# Pepino
 
-This project follows the concepts and structure outlined in the book, providing an in-depth exploration of language design and interpreter implementation.
+**Pepino** is a Gherkin feature file interpreter and test generator for C++ using the Google Test (gtest) framework. Inspired by the "Crafting Interpreters" book by Robert Nystrom, Pepino is a project that parses `.feature` files written in Gherkin syntax and generates corresponding C++ test cases using gtest. This allows developers to write behavior-driven tests for their C++ codebase in a highly readable, structured format.
 
-## Overview
+## Features
 
-Lox is a dynamically-typed, interpreted language designed to be simple yet powerful enough to demonstrate key programming language concepts. This interpreter implements the Lox language by walking through the book step-by-step, covering key aspects of both a tree-walk interpreter and a bytecode virtual machine.
+- **Parse Gherkin Feature Files**: Reads `.feature` files written in Gherkin syntax.
+- **Generate gtest-Compatible Code**: Produces C++ code compatible with the Google Test framework.
+- **Supports Gherkin Syntax**: Handles core Gherkin constructs such as `Feature`, `Scenario`, `Given`, `When`, `Then`, `And`, and `Scenario Outline` with `Examples`.
+- **Example-Driven Tests**: Supports parameterized tests via `Scenario Outline` and `Examples` tables for varied test cases.
+- **Reusable Test Scenarios**: Use `Background` sections for shared setup across multiple scenarios.
 
-## Key Concepts
+## Table of Contents
 
-### 1. **Tree-Walk Interpreter**
-
-The interpreter is built by parsing the source code into an abstract syntax tree (AST) and then evaluating the tree.
-
->"Tree-walk interpreters have a simple and elegant implementation that makes them an excellent starting point for learning how interpreters work." — *Crafting Interpreters, Chapter 5*
-
-### 2. **Scanner**
-
-The scanner (or lexer) is responsible for converting the raw source code into a list of tokens that the parser can process.
-
->"A scanner, sometimes called a lexer, is the first phase in a compiler. It reads the source code as a sequence of characters and groups them into meaningful chunks called lexemes." — *Crafting Interpreters, Chapter 4*
-
-### 3. **Parser**
-
-The parser takes the list of tokens from the scanner and organizes them into a structure that reflects the grammar of the language.
-
->"The parser consumes the flat sequence of tokens produced by the scanner and organizes them into a hierarchical structure that reflects the nested grammatical structure of the source code." — *Crafting Interpreters, Chapter 6*
-
-### 4. **AST (Abstract Syntax Tree)**
-
-The AST represents the hierarchical structure of the source code. Each node in the tree corresponds to a construct in the language, such as an expression or statement.
-
->"An abstract syntax tree, or AST, is a tree representation of the abstract syntactic structure of source code written in a programming language." — *Crafting Interpreters, Chapter 7*
-
-### 5. **Interpreter**
-
-The interpreter walks the AST, visiting each node to evaluate expressions and execute statements.
-
->"Interpreters are at the heart of our understanding of programs and how they work. They give us a tool to reason about how a program will execute." — *Crafting Interpreters, Chapter 11*
-
-### 6. **Error Handling**
-
-Error handling is a critical part of building an interpreter. The book emphasizes the importance of providing clear, helpful error messages.
-
->"When your interpreter encounters an error, it should not simply halt execution with a cryptic message. Instead, it should try to provide meaningful feedback to help the user understand and correct the problem." — *Crafting Interpreters, Chapter 4*
-
-### 7. **Bytecode Virtual Machine**
-
-The project also explores creating a bytecode virtual machine for Lox, which involves compiling the AST into bytecode and then interpreting that bytecode.
-
->"A bytecode virtual machine is the heart of many modern interpreters. It’s a powerful, fast, and flexible way to implement an interpreter." — *Crafting Interpreters, Chapter 14*
+- [Getting Started](#getting-started)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Supported Syntax](#supported-syntax)
+- [Example](#example)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Getting Started
 
+Pepino translates behavior specifications into executable C++ tests, making it easier to manage BDD-style test scenarios. The main workflow involves creating Gherkin feature files, running Pepino to generate C++ test files, and then compiling and running the tests with gtest.
+
 ### Prerequisites
 
-To build and run the Lox interpreter, you'll need the following:
+- **C++20 or newer** for generated code compatibility.
+- **Google Test (gtest)** library installed for test compilation and execution.
+- **CMake (optional)** if using CMake to build the generated tests.
 
-- A C++ compiler that supports C++20 or higher.
-- [CMake](https://cmake.org/) for generating build files.
-- Basic understanding of programming concepts and C++.
+## Installation
 
-### Building the Project
+Clone the repository:
 
-1. **Clone the repository:**
-
-   ```sh
-   git clone https://github.com/dutesier/lox.git
-   cd lox-interpreter
-   ```
-
-2. **Generate build files with CMake:**
-
-   ```sh
-   mkdir build
-   cd build
-   cmake ..
-   ```
-
-3. **Build the project:**
-
-   ```sh
-   cmake --build .
-   ```
-
-### Running the Interpreter
-
-After building the project, you can run the Lox interpreter from the command line.
-
-1. **Run the interpreter: (TBD)**
-
-   ```sh
-   ./lox
-   ```
-
-2. **Execute Lox code:**
-
-   You can run Lox code by typing commands directly into the interpreter or by passing a `.lox` file as an argument:
-
-   ```sh
-   ./lox script.lox
-   ```
-
-### Example Lox Program
-
-```lox
-print "Hello, World!";
+```bash
+git clone https://github.com/dutesier/pepino.git
+cd pepino
 ```
 
-### Current EBNF
-```
-expression     → literal
-               | unary
-               | binary
-               | grouping ;
+Then build the project:
 
-literal        → NUMBER | STRING | "true" | "false" | "nil" ;
-grouping       → "(" expression ")" ;
-unary          → ( "-" | "!" ) expression ;
-binary         → expression operator expression ;
-operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
-               | "+"  | "-"  | "*" | "/" ;
+```bash
+mkdir build
+cd build
+cmake ..
+make
 ```
 
-### License
+## Usage
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+1. **Write Gherkin Feature Files**: Create `.feature` files that describe the desired behavior in Gherkin syntax.
+2. **Run Pepino**: Use Pepino to parse the feature files and generate corresponding C++ test files.
 
-### Acknowledgments
+```bash
+./pepino path/to/your.feature
+```
 
-Special thanks to Robert Nystrom for writing *Crafting Interpreters* and providing the inspiration and guidance for this project.
+This will generate a `.cpp` file containing the gtest-compatible C++ code.
+
+3. **Compile and Run Tests**: Use gtest to compile and run the generated tests.
+
+```bash
+g++ generated_test.cpp -lgtest -lgtest_main -pthread -o test
+./test
+```
+
+## Supported Syntax
+
+Pepino supports the following Gherkin syntax constructs:
+
+- `Feature`: Top-level description of the feature under test.
+- `Scenario`: Describes a specific test case within the feature.
+- `Given`: Specifies preconditions.
+- `When`: Defines actions performed.
+- `Then`: Outlines expected outcomes.
+- `And`: Adds additional steps to `Given`, `When`, or `Then`.
+- `Scenario Outline` with `Examples`: Parameterized scenarios for running the same test logic with different inputs.
+- `Background`: Provides shared setup for all scenarios in a feature.
+
+For detailed BNF of the supported Gherkin syntax, refer to `BNF.md`.
+
+## Example
+
+### Sample `.feature` file
+
+```gherkin
+Feature: Login functionality
+
+  Background:
+    Given a user exists with username "user" and password "pass"
+
+  Scenario: Successful login
+    Given the user is on the login page
+    When the user enters valid credentials
+    Then they should be redirected to the dashboard
+
+  Scenario Outline: Unsuccessful login attempts
+    Given the user is on the login page
+    When the user enters <username> and <password>
+    Then they should see an error message
+
+    Examples:
+      | username | password |
+      | user     | wrongpass |
+      | unknown  | pass      |
+```
+
+### Generated C++ Test File (example output)
+
+```cpp
+#include <gtest/gtest.h>
+
+TEST(LoginFunctionality, SuccessfulLogin) {
+    // Given a user exists with username "user" and password "pass"
+    // the user is on the login page
+    // When the user enters valid credentials
+    // Then they should be redirected to the dashboard
+}
+
+TEST(LoginFunctionality, UnsuccessfulLoginAttempts) {
+    // Scenario outline for multiple examples
+    struct Example { std::string username; std::string password; };
+    std::vector<Example> examples = {
+        {"user", "wrongpass"},
+        {"unknown", "pass"}
+    };
+
+    for (const auto& example : examples) {
+        // Given the user is on the login page
+        // When the user enters example.username and example.password
+        // Then they should see an error message
+    }
+}
+```
+
+## Contributing
+
+Contributions are welcome! If you'd like to contribute, please fork the repository and submit a pull request with your changes.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-Happy coding! 🌟
+Pepino is a tool for developers who want to bring the benefits of BDD into their C++ projects using Google Test. Happy testing!

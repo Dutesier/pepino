@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -33,7 +33,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace lox
+namespace pep
 {
 
 class Interpreter
@@ -64,9 +64,6 @@ public:
     void visit(const ReturnStatement& statement) override;
 
     void executeCodeBlock(const std::vector<StatementUPTR>& body, std::shared_ptr<Environment> env);
-    // Semantic analysis - variable resolution
-    void resolve(const VariableExpression& expr, int depth);
-    void resolve(const AssignmentExpression& expr, int depth);
 
 private:
     int interpretFile();
@@ -127,4 +124,4 @@ public:
     };
 };
 
-} // namespace lox
+} // namespace pep

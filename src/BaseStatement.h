@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -25,7 +25,7 @@
 #include <variant>
 #include <vector>
 
-namespace lox
+namespace pep
 {
 
 class ExpressionStatement;
@@ -180,4 +180,4 @@ public:
     std::optional<std::unique_ptr<Expression>> value;
 };
 
-} // namespace lox
+} // namespace pep

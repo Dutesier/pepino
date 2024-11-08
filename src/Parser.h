@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -24,7 +24,7 @@
 #include <optional>
 #include <vector>
 
-namespace lox
+namespace pep
 {
 
 using ExpressionUPTR = std::unique_ptr<Expression>;
@@ -36,7 +36,7 @@ public:
     Parser(std::vector<Token> tokens);
 
     // std::optional<ExpressionUPTR> parse();
-    std::vector<StatementUPTR> parse();
+    // std::vector<StatementUPTR> parse();
 
     class ParserException;
 
@@ -44,76 +44,78 @@ private:
     using MatchingFn = std::function<bool(void)>;
     using ExpressionProducingFn = std::function<ExpressionUPTR(void)>;
 
-    // declaration    →  funDecl
-    //                 | varDecl
-    //                 | statement ;
-    StatementUPTR declaration();
-    // "var" IDENTIFIER ( "=" expression )? ";" ;
-    StatementUPTR varDeclaration();
-    // funDecl        → "fun" function ;
-    // function       → IDENTIFIER "(" parameters? ")" block ;
-    // parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
-    StatementUPTR function(std::string kind);
-
-    // statement      → expression
-    //                  | "print" expression
-    //                  | forStatement
-    //                  | ifStatement
-    //                  | returnStatement
-    //                  | whileStatement
-    //                  | block ;
-
-    StatementUPTR statement();
-    StatementUPTR printStatement();
-    StatementUPTR expressionStatement();
-    // ifStatement    → "if" "(" expression ")" statement
-    //                ( "else" statement )? ;
-    StatementUPTR ifStatement();
-    // forStatement    → "for" "(" ( varDecl | exprStmt | ";" )
-    //                   expression? ";"
-    //                   expression? ")" statement ;
-    StatementUPTR forStatement();
-    // whileStmt      → "while" "(" expression ")" statement ;
-    StatementUPTR whileStatement();
-    // returnStmt     → "return" expression? ";" ;
-    StatementUPTR returnStatement();
-    // block          → "{" declaration* "}" ;
-    StatementUPTR block();
-
-    // expression     → assignement ;
     ExpressionUPTR expression();
-    // assignment     → IDENTIFIER '=' comma;
-    ExpressionUPTR assignment();
-    // comma          → logicOr ( ","  logicOr )* ;
-    ExpressionUPTR comma();
-    // logic_or       → logic_and ( "or" logic_and )* ;
-    ExpressionUPTR logicOr();
-    // logic_and      → equality ( "and" equality )* ;
-    ExpressionUPTR logicAnd();
-    // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-    ExpressionUPTR equality();
-    // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-    ExpressionUPTR comparison();
-    // term           → factor ( ( "-" | "+" ) factor )* ;
-    ExpressionUPTR term();
-    // factor         → unary ( ( "/" | "*" ) unary )* ;
-    ExpressionUPTR factor();
-    // unary          → ( "!" | "-" ) unary
-    //                | call ;
-    ExpressionUPTR unary();
-    // call           → primary ( "(" arguments? ")" )* ;
-    // arguments      → expression ( "," expression )*" ;
-    ExpressionUPTR call();
-    // primary        → NUMBER | STRING | "true" | "false" | "nil"
-    //                | "(" expression ")" | IDENTIFIER ;
-    ExpressionUPTR primary();
+    ExpressionUPTR stepDescription();
+    // // declaration    →  funDecl
+    // //                 | varDecl
+    // //                 | statement ;
+    // StatementUPTR declaration();
+    // // "var" IDENTIFIER ( "=" expression )? ";" ;
+    // StatementUPTR varDeclaration();
+    // // funDecl        → "fun" function ;
+    // // function       → IDENTIFIER "(" parameters? ")" block ;
+    // // parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+    // StatementUPTR function(std::string kind);
 
-    // Challenge to perhaps tackle in the future
-    // // ternary     → equality "?" equality ":" equality
-    // ExpressionUPTR ternary();
+    // // statement      → expression
+    // //                  | "print" expression
+    // //                  | forStatement
+    // //                  | ifStatement
+    // //                  | returnStatement
+    // //                  | whileStatement
+    // //                  | block ;
 
-    ExpressionUPTR buildBinaryExpression(ExpressionProducingFn lowerPrecedenceFn, MatchingFn matchFn);
-    ExpressionUPTR finishCall(ExpressionUPTR callee);
+    // StatementUPTR statement();
+    // StatementUPTR printStatement();
+    // StatementUPTR expressionStatement();
+    // // ifStatement    → "if" "(" expression ")" statement
+    // //                ( "else" statement )? ;
+    // StatementUPTR ifStatement();
+    // // forStatement    → "for" "(" ( varDecl | exprStmt | ";" )
+    // //                   expression? ";"
+    // //                   expression? ")" statement ;
+    // StatementUPTR forStatement();
+    // // whileStmt      → "while" "(" expression ")" statement ;
+    // StatementUPTR whileStatement();
+    // // returnStmt     → "return" expression? ";" ;
+    // StatementUPTR returnStatement();
+    // // block          → "{" declaration* "}" ;
+    // StatementUPTR block();
+
+    // // expression     → assignement ;
+    // ExpressionUPTR expression();
+    // // assignment     → IDENTIFIER '=' comma;
+    // ExpressionUPTR assignment();
+    // // comma          → logicOr ( ","  logicOr )* ;
+    // ExpressionUPTR comma();
+    // // logic_or       → logic_and ( "or" logic_and )* ;
+    // ExpressionUPTR logicOr();
+    // // logic_and      → equality ( "and" equality )* ;
+    // ExpressionUPTR logicAnd();
+    // // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+    // ExpressionUPTR equality();
+    // // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+    // ExpressionUPTR comparison();
+    // // term           → factor ( ( "-" | "+" ) factor )* ;
+    // ExpressionUPTR term();
+    // // factor         → unary ( ( "/" | "*" ) unary )* ;
+    // ExpressionUPTR factor();
+    // // unary          → ( "!" | "-" ) unary
+    // //                | call ;
+    // ExpressionUPTR unary();
+    // // call           → primary ( "(" arguments? ")" )* ;
+    // // arguments      → expression ( "," expression )*" ;
+    // ExpressionUPTR call();
+    // // primary        → NUMBER | STRING | "true" | "false" | "nil"
+    // //                | "(" expression ")" | IDENTIFIER ;
+    // ExpressionUPTR primary();
+
+    // // Challenge to perhaps tackle in the future
+    // // // ternary     → equality "?" equality ":" equality
+    // // ExpressionUPTR ternary();
+
+    // ExpressionUPTR buildBinaryExpression(ExpressionProducingFn lowerPrecedenceFn, MatchingFn matchFn);
+    // ExpressionUPTR finishCall(ExpressionUPTR callee);
 
     // Helper functions
     Token peek();
@@ -155,4 +157,4 @@ public:
     };
 };
 
-} // namespace lox
+} // namespace pep

@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -18,7 +18,7 @@
 
 #include <unordered_map>
 
-namespace lox
+namespace pep
 {
 
 namespace
@@ -97,4 +97,4 @@ void Logger::terminal(const std::string& data)
     std::cout << term << (data.data() ? data.data() : "");
 }
 
-} // namespace lox
+} // namespace pep

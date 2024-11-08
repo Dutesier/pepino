@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -22,7 +22,7 @@
 #include <variant>
 #include <vector>
 
-namespace lox
+namespace pep
 {
 
 struct NullLiteral
@@ -49,4 +49,4 @@ using Object = Callable::Object;
 std::string print(const Object& values);
 std::ostream& operator<<(std::ostream& os, Callable /*nl*/);
 
-} // namespace lox
+} // namespace pep

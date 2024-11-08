@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -21,7 +21,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace lox
+namespace pep
 {
 
 namespace
@@ -32,82 +32,34 @@ std::string tokenTypeToString(TokenType type)
     using enum TokenType;
     switch (type)
     {
-    case TokenType::LeftParen:
-        return "LeftParen";
-    case TokenType::RightParen:
-        return "RightParen";
-    case TokenType::LeftBrace:
-        return "LeftBrace";
-    case TokenType::RightBrace:
-        return "RightBrace";
-    case TokenType::Comma:
-        return "Comma";
-    case TokenType::Dot:
-        return "Dot";
-    case TokenType::Minus:
-        return "Minus";
-    case TokenType::Plus:
-        return "Plus";
-    case TokenType::Semicolon:
-        return "Semicolon";
-    case TokenType::Slash:
-        return "Slash";
-    case TokenType::Star:
-        return "Star";
-    case TokenType::Bang:
-        return "Bang";
-    case TokenType::BangEqual:
-        return "BangEqual";
-    case TokenType::Equal:
-        return "Equal";
-    case TokenType::EqualEqual:
-        return "EqualEqual";
-    case TokenType::Greater:
-        return "Greater";
-    case TokenType::GreaterEqual:
-        return "GreaterEqual";
-    case TokenType::Less:
-        return "Less";
-    case TokenType::LessEqual:
-        return "LessEqual";
+    case TokenType::Pipe:
+        return "Pipe";
+    case TokenType::Comment:
+        return "Comment";
     case TokenType::Identifier:
         return "Identifier";
     case TokenType::String:
         return "String";
     case TokenType::Number:
         return "Number";
+    case TokenType::Feature:
+        return "Feature";
+    case TokenType::Background:
+        return "Background";
+    case TokenType::Scenario:
+        return "Scenario";
+    case TokenType::ScenarioOutline:
+        return "ScenarioOutline";
+    case TokenType::Examples:
+        return "Examples";
+    case TokenType::Given:
+        return "Given";
+    case TokenType::When:
+        return "When";
+    case TokenType::Then:
+        return "Then";
     case TokenType::And:
         return "And";
-    case TokenType::Class:
-        return "Class";
-    case TokenType::Else:
-        return "Else";
-    case TokenType::False:
-        return "False";
-    case TokenType::Fun:
-        return "Fun";
-    case TokenType::For:
-        return "For";
-    case TokenType::If:
-        return "If";
-    case TokenType::Nil:
-        return "Nil";
-    case TokenType::Or:
-        return "Or";
-    case TokenType::Print:
-        return "Print";
-    case TokenType::Return:
-        return "Return";
-    case TokenType::Super:
-        return "Super";
-    case TokenType::This:
-        return "This";
-    case TokenType::True:
-        return "True";
-    case TokenType::Var:
-        return "Var";
-    case TokenType::While:
-        return "While";
     case TokenType::Eof:
         return "Eof";
     case TokenType::Error:
@@ -176,4 +128,4 @@ bool operator==(const Token& lhs, const Token& rhs)
            literalEquals(lhs.literal, rhs.literal);
 }
 
-} // namespace lox
+} // namespace pep

@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -20,33 +20,16 @@
 #include <string_view>
 #include <variant>
 
-namespace lox
+namespace pep
 {
 
 enum TokenType
 {
     // Single-character tokens.
-    LeftParen,
-    RightParen,
-    LeftBrace,
-    RightBrace,
-    Comma,
-    Dot,
-    Minus,
-    Plus,
-    Semicolon,
-    Slash,
-    Star,
+    Pipe,
 
     // One or two character tokens.
-    Bang,
-    BangEqual,
-    Equal,
-    EqualEqual,
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
+    Comment,
 
     // Literals.
     Identifier,
@@ -54,22 +37,15 @@ enum TokenType
     Number,
 
     // Keywords.
+    Feature,
+    Background,
+    Scenario,
+    ScenarioOutline,
+    Examples,
+    Given,
+    When,
+    Then,
     And,
-    Class,
-    Else,
-    False,
-    Fun,
-    For,
-    If,
-    Nil,
-    Or,
-    Print,
-    Return,
-    Super,
-    This,
-    True,
-    Var,
-    While,
 
     Eof,
 
@@ -89,4 +65,4 @@ struct Token
 bool operator==(const Token& lhs, const Token& rhs);
 std::ostream& operator<<(std::ostream& os, const Token& me);
 
-} // namespace lox
+} // namespace pep

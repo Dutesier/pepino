@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -22,7 +22,7 @@
 #include <string>
 #include <variant>
 
-namespace lox
+namespace pep
 {
 
 Function::Function(const FunctionStatement& declaration, std::shared_ptr<Environment> clo)
@@ -66,4 +66,4 @@ Function::Function(const FunctionStatement& declaration, std::shared_ptr<Environ
     };
 }
 
-} // namespace lox
+} // namespace pep

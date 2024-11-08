@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-namespace lox
+namespace pep
 {
 
 class AstPrinter : public ExpressionVisitor
@@ -110,4 +110,4 @@ public:
     };
 };
 
-} // namespace lox
+} // namespace pep

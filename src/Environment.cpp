@@ -1,6 +1,6 @@
 /******************************************************************************
- * Project:  Lox
- * Brief:    A C++ Lox interpreter.
+ * Project:  Pepino
+ * Brief:    A C++ Cucumber interpreter.
  *
  * This software is provided "as is," without warranty of any kind, express
  * or implied, including but not limited to the warranties of merchantability,
@@ -21,7 +21,7 @@
 #include <memory>
 #include <string>
 
-namespace lox
+namespace pep
 {
 
 unsigned int Environment::globalId = 1;
@@ -104,4 +104,4 @@ void Environment::assign(std::string key, Object value)
     m_variables[key] = value;
 }
 
-} // namespace lox
+} // namespace pep
