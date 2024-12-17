@@ -16,10 +16,11 @@
 
 #pragma once
 
-#include "Environment.h"
+// #include "Environment.h"
 #include "Lexer.h"
 #include "Logger.h"
 #include "Parser.h"
+#include "StepRegistry.h"
 
 #include "BaseExpression.h"
 #include "BaseStatement.h"
@@ -45,25 +46,17 @@ public:
     explicit Interpreter(std::filesystem::path file);
 
     int run();
-    Object visit(const BinaryExpression& expr) override;
     Object visit(const LiteralExpression& expr) override;
-    Object visit(const GroupingExpression& expr) override;
-    Object visit(const UnaryExpression& expr) override;
-    Object visit(const VariableExpression& expr) override;
-    Object visit(const AssignmentExpression& expr) override;
-    Object visit(const LogicalExpression& expr) override;
-    Object visit(const CallExpression& expr) override;
 
-    void visit(const PrintStatement& stmt) override;
-    void visit(const ExpressionStatement& stmt) override;
-    void visit(const VarStatement& stmt) override;
-    void visit(const BlockStatement& stmt) override;
-    void visit(const IfStatement& stmt) override;
-    void visit(const WhileStatement& stmt) override;
-    void visit(const FunctionStatement& statement) override;
-    void visit(const ReturnStatement& statement) override;
+    void visit(const FeatureStatement& stmt) override;
+    void visit(const BackgroundStatement& stmt) override;
+    void visit(const ScenarioStatement& stmt) override;
+    void visit(const StepStatement& stmt) override;
+    void visit(const ScenarioOutlineStatement& stmt) override;
+    void visit(const ExamplesStatement& stmt) override;
+    void visit(const TagStatement& stmt) override;
 
-    void executeCodeBlock(const std::vector<StatementUPTR>& body, std::shared_ptr<Environment> env);
+    // void executeCodeBlock(const std::vector<StatementUPTR>& body, std::shared_ptr<Environment> env);
 
 private:
     int interpretFile();
@@ -79,12 +72,13 @@ private:
     std::optional<std::filesystem::path> m_path;
     std::unique_ptr<Lexer> m_lexer;
     std::unique_ptr<Parser> m_parser;
-    std::shared_ptr<Environment> m_env;
+    // std::shared_ptr<Environment> m_env;
     Logger m_logger;
 
-    std::shared_ptr<Environment> m_globalEnvironment = std::make_shared<Environment>();
-    std::unordered_map<std::shared_ptr<VariableExpression>, int> m_localVarDeclaration;
-    std::unordered_map<std::shared_ptr<AssignmentExpression>, int> m_localVarAssignment;
+    // std::shared_ptr<Environment> m_globalEnvironment = std::make_shared<Environment>();
+    StepRegistry m_stepRegistry;
+    // std::unordered_map<std::shared_ptr<VariableExpression>, int> m_localVarDeclaration;
+    // std::unordered_map<std::shared_ptr<AssignmentExpression>, int> m_localVarAssignment;
 
 public:
     // Custom exception class

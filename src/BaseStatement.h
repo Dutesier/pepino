@@ -21,6 +21,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <string>
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -28,156 +29,164 @@
 namespace pep
 {
 
-class ExpressionStatement;
-class PrintStatement;
-class VarStatement;
-class BlockStatement;
-class IfStatement;
-class WhileStatement;
-class FunctionStatement;
-class ReturnStatement;
+// Forward declaration
+class FeatureStatement;
+class BackgroundStatement;
+class ScenarioStatement;
+class StepStatement;
+class ScenarioOutlineStatement;
+class ExamplesStatement;
+class TagStatement;
 
 class StatementVisitor
 {
 public:
     virtual ~StatementVisitor() = default;
 
-    virtual void visit(const ExpressionStatement& statement) = 0;
-    virtual void visit(const PrintStatement& statement) = 0;
-    virtual void visit(const VarStatement& statement) = 0;
-    virtual void visit(const BlockStatement& statement) = 0;
-    virtual void visit(const IfStatement& statement) = 0;
-    virtual void visit(const WhileStatement& statement) = 0;
-    virtual void visit(const FunctionStatement& statement) = 0;
-    virtual void visit(const ReturnStatement& statement) = 0;
+    virtual void visit(const FeatureStatement& stmt) = 0;
+    virtual void visit(const BackgroundStatement& stmt) = 0;
+    virtual void visit(const ScenarioStatement& stmt) = 0;
+    virtual void visit(const StepStatement& stmt) = 0;
+    virtual void visit(const ScenarioOutlineStatement& stmt) = 0;
+    virtual void visit(const ExamplesStatement& stmt) = 0;
+    virtual void visit(const TagStatement& stmt) = 0;
 };
 
 class Statement
 {
 public:
     virtual ~Statement() = default;
+
     // Accept method for the Visitor pattern
     virtual void accept(StatementVisitor& visitor) const = 0;
 };
 
-class ExpressionStatement : public Statement
+class TagStatement : public Statement
 {
 public:
-    ExpressionStatement(std::unique_ptr<Expression> expr)
-        : expr(std::move(expr))
-    {
-    }
+    std::string name;
 
-    void accept(StatementVisitor& visitor) const { visitor.visit(*this); };
-
-    std::unique_ptr<Expression> expr;
-};
-
-class PrintStatement : public Statement
-{
-public:
-    PrintStatement(std::unique_ptr<Expression> expr)
-        : expr(std::move(expr))
-    {
-    }
-
-    void accept(StatementVisitor& visitor) const { visitor.visit(*this); };
-
-    std::unique_ptr<Expression> expr;
-};
-
-class VarStatement : public Statement
-{
-public:
-    VarStatement(Token name, std::unique_ptr<Expression> expr)
+    explicit TagStatement(std::string name)
         : name(std::move(name))
-        , expr(std::move(expr))
     {
     }
 
-    void accept(StatementVisitor& visitor) const { visitor.visit(*this); };
-
-    Token name;
-    std::unique_ptr<Expression> expr;
+    void accept(StatementVisitor& visitor) const override { visitor.visit(*this); }
 };
 
-class BlockStatement : public Statement
+class StepStatement : public Statement
 {
 public:
-    BlockStatement(std::vector<std::unique_ptr<Statement>> statements)
-        : statements(std::move(statements))
-    {
-    }
+    std::string keyword; // e.g. "Given", "When", "Then"
+    std::vector<std::unique_ptr<Expression>> expressions;
+    // Each Expression could be a LiteralExpression or PlaceholderExpression
 
-    void accept(StatementVisitor& visitor) const { visitor.visit(*this); };
-
-    std::vector<std::unique_ptr<Statement>> statements;
-};
-
-class IfStatement : public Statement
-{
-public:
-    IfStatement(
-        std::unique_ptr<Expression> condition,
-        std::unique_ptr<Statement> thenBranch,
-        std::optional<std::unique_ptr<Statement>> elseBranch = std::nullopt)
-        : condition(std::move(condition))
-        , thenBranch(std::move(thenBranch))
-        , elseBranch(std::move(elseBranch))
-    {
-    }
-
-    void accept(StatementVisitor& visitor) const { visitor.visit(*this); };
-
-    std::unique_ptr<Expression> condition;
-    std::unique_ptr<Statement> thenBranch;
-    std::optional<std::unique_ptr<Statement>> elseBranch;
-};
-
-class WhileStatement : public Statement {
-public:
-    WhileStatement(std::unique_ptr<Expression> condition, std::unique_ptr<Statement> body)
-        : condition(std::move(condition))
-        , body(std::move(body))
-    {
-    }
-
-    void accept(StatementVisitor& visitor) const { visitor.visit(*this); };
-
-    std::unique_ptr<Expression> condition;
-    std::unique_ptr<Statement> body;
-};
-
-class FunctionStatement : public Statement
-{
-public:
-    FunctionStatement(Token name, std::vector<Token> params, std::vector<std::unique_ptr<Statement>> body)
-        : name(std::move(name))
-        , params(std::move(params))
-        , body(std::move(body))
-    {
-    }
-
-    void accept(StatementVisitor& visitor) const { visitor.visit(*this); };
-
-    Token name;
-    std::vector<Token> params;
-    std::vector<std::unique_ptr<Statement>> body;
-};
-
-class ReturnStatement : public Statement
-{
-public:
-    ReturnStatement(Token keyword, std::optional<std::unique_ptr<Expression>> value)
+    StepStatement(std::string keyword, std::vector<std::unique_ptr<Expression>> expressions)
         : keyword(std::move(keyword))
-        , value(std::move(value))
+        , expressions(std::move(expressions))
     {
     }
 
-    void accept(StatementVisitor& visitor) const { visitor.visit(*this); };
+    void accept(StatementVisitor& visitor) const override { visitor.visit(*this); }
+};
 
-    Token keyword;
-    std::optional<std::unique_ptr<Expression>> value;
+class BackgroundStatement : public Statement
+{
+public:
+    std::vector<std::unique_ptr<StepStatement>> steps;
+
+    explicit BackgroundStatement(std::vector<std::unique_ptr<StepStatement>> steps)
+        : steps(std::move(steps))
+    {
+    }
+
+    void accept(StatementVisitor& visitor) const override { visitor.visit(*this); }
+};
+
+class ScenarioStatement : public Statement
+{
+public:
+    std::string name;
+    std::vector<std::unique_ptr<TagStatement>> tags;
+    std::vector<std::unique_ptr<StepStatement>> steps;
+
+    ScenarioStatement(
+        std::string name,
+        std::vector<std::unique_ptr<TagStatement>> tags,
+        std::vector<std::unique_ptr<StepStatement>> steps)
+        : name(std::move(name))
+        , tags(std::move(tags))
+        , steps(std::move(steps))
+    {
+    }
+
+    void accept(StatementVisitor& visitor) const override { visitor.visit(*this); }
+};
+
+class ExamplesStatement : public Statement
+{
+public:
+    // A simple structure for the examples table:
+    // "headers" might be ["x", "y", "result"]
+    // "rows" might be [ ["42", "24", "66"], ["2", "3", "5"] ]
+    std::vector<std::string> headers;
+    std::vector<std::vector<std::string>> rows;
+
+    ExamplesStatement(std::vector<std::string> headers, std::vector<std::vector<std::string>> rows)
+        : headers(std::move(headers))
+        , rows(std::move(rows))
+    {
+    }
+
+    void accept(StatementVisitor& visitor) const override { visitor.visit(*this); }
+};
+
+class ScenarioOutlineStatement : public Statement
+{
+public:
+    std::string name;
+    std::vector<std::unique_ptr<TagStatement>> tags;
+    std::vector<std::unique_ptr<StepStatement>> steps;
+    // Usually, there's exactly one ExamplesStatement, but let's store as unique_ptr
+    std::unique_ptr<ExamplesStatement> examples;
+
+    ScenarioOutlineStatement(
+        std::string name,
+        std::vector<std::unique_ptr<TagStatement>> tags,
+        std::vector<std::unique_ptr<StepStatement>> steps,
+        std::unique_ptr<ExamplesStatement> examples)
+        : name(std::move(name))
+        , tags(std::move(tags))
+        , steps(std::move(steps))
+        , examples(std::move(examples))
+    {
+    }
+
+    void accept(StatementVisitor& visitor) const override { visitor.visit(*this); }
+};
+
+class FeatureStatement : public Statement
+{
+public:
+    std::string name;
+    std::vector<std::unique_ptr<TagStatement>> tags;
+    std::unique_ptr<BackgroundStatement> background; // optional
+    // The children of a feature could be ScenarioStatements or ScenarioOutlineStatements
+    std::vector<std::unique_ptr<Statement>> children;
+
+    FeatureStatement(
+        std::string name,
+        std::vector<std::unique_ptr<TagStatement>> tags,
+        std::unique_ptr<BackgroundStatement> background,
+        std::vector<std::unique_ptr<Statement>> children)
+        : name(std::move(name))
+        , tags(std::move(tags))
+        , background(std::move(background))
+        , children(std::move(children))
+    {
+    }
+
+    void accept(StatementVisitor& visitor) const override { visitor.visit(*this); }
 };
 
 } // namespace pep

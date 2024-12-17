@@ -27,6 +27,7 @@ enum TokenType
 {
     // Single-character tokens.
     Pipe,
+    Colon,
 
     // One or two character tokens.
     Comment,

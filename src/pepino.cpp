@@ -31,10 +31,8 @@ int run()
 
 int run(const std::string& filepath)
 {
-    (void)filepath;
-    return 0;
-    // Interpreter interpreter(filepath);
-    // return interpreter.run();
+    Interpreter interpreter(filepath);
+    return interpreter.run();
 }
 
 } // namespace pep

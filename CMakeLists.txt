@@ -20,12 +20,13 @@ add_compile_options(-Wall -Werror -Wextra)
 # Define source files
 set(SRC_FILES 
     src/pepino.cpp
-    # src/Interpreter.cpp
+    src/Interpreter.cpp
     src/Logger.cpp
     src/Lexer.cpp
-    # src/Parser.cpp
+    src/Parser.cpp
     src/Token.cpp
-    # src/Object.cpp
+    src/Object.cpp
+    src/StepRegistry.cpp
     # src/Environment.cpp
     # src/Function.cpp
     )
@@ -34,9 +35,9 @@ set(SRC_FILES
 add_library(Pepino ${SRC_FILES})
 target_include_directories(Pepino PUBLIC include)
 
-# Add target for manually testing
-add_executable(PepinoMainTest ${SRC_FILES} main.cpp)
-target_link_libraries(PepinoMainTest PRIVATE Pepino)
+# # Add target for manually testing
+# add_executable(PepinoMainTest ${SRC_FILES} main.cpp)
+# target_link_libraries(PepinoMainTest PRIVATE Pepino)
 
 # Add Google Test
 find_package(GTest)

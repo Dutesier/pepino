@@ -16,8 +16,6 @@
 
 #include "Parser.h"
 
-#include "BaseExpression.h"
-#include "BaseStatement.h"
 #include "Logger.h"
 #include "Token.h"
 #include <memory>
@@ -32,492 +30,242 @@ Parser::Parser(std::vector<Token> tokens)
 {
 }
 
-Expression Parser::expression()
+// Implementation
+// -----------------------------------------------------------------------------
+
+StatementUPTR Parser::parseFeatureStatement()
 {
-    return Expression{};
-}
-
-// std::vector<StatementUPTR> Parser::parse()
-// {
-//     std::vector<StatementUPTR> statements;
-//     while (!isAtEnd())
-//     {
-//         try
-//         {
-//             statements.emplace_back(declaration());
-//         }
-//         catch (ParserException& error)
-//         {
-//             Logger::error("Failed parsing. " + std::string{ error.what() });
-//             synchronize();
-//             break;
-//         }
-//     }
-
-//     return statements;
-// }
-
-// StatementUPTR Parser::declaration()
-// {
-//     if (match(Fun))
-//     {
-//         return function("function");
-//     }
-//     if (match(Var))
-//     {
-//         return varDeclaration();
-//     }
-//     return statement();
-// }
-
-// StatementUPTR Parser::function(std::string kind)
-// {
-//     Token name = consumeOrThrow(Identifier, "Expected " + kind + " name.");
-//     consumeOrThrow(LeftParen, "Expect '(' after " + kind + " name.");
-//     std::vector<Token> parameters;
-//     if (!checkCurrentToken(RightParen))
-//     {
-//         do
-//         {
-//             if (parameters.size() >= 255)
-//             {
-//                 error(peek(), "Can't have more than 255 parameters.");
-//             }
-//             parameters.emplace_back(consumeOrThrow(Identifier, "Expect parameter name."));
-//         } while (match(Comma));
-//     }
-//     consumeOrThrow(RightParen, "Expect ')' after parameters.");
-//     consumeOrThrow(LeftBrace, "Expect '{' before " + kind + " body.");
-//     if (auto&& body = dynamic_cast<BlockStatement*>(block().release()); body)
-//     {
-//         return std::make_unique<FunctionStatement>(std::move(name), std::move(parameters),
-//         std::move(body->statements));
-//     }
-//     throw error(peek(), "Couldn't create a block statement");
-// }
-
-// StatementUPTR Parser::varDeclaration()
-// {
-//     Token name = consumeOrThrow(Identifier, "Expected an identifier.");
-//     std::unique_ptr<Expression> expr;
-//     if (match(Equal))
-//     {
-//         expr = expression();
-//     }
-//     consumeOrThrow(Semicolon, "Expected semicolon after variable declaration.");
-
-//     return std::make_unique<VarStatement>(name, std::move(expr));
-// }
-
-// StatementUPTR Parser::statement()
-// {
-//     if (match(For))
-//     {
-//         return forStatement();
-//     }
-//     if (match(TokenType::If))
-//     {
-//         return ifStatement();
-//     }
-//     if (match(TokenType::Print))
-//     {
-//         return printStatement();
-//     }
-//     if (match(Return))
-//     {
-//         return returnStatement();
-//     }
-//     if (match(TokenType::While))
-//     {
-//         return whileStatement();
-//     }
-//     if (match(TokenType::LeftBrace))
-//     {
-//         return block();
-//     }
-//     return expressionStatement();
-// }
-
-// StatementUPTR Parser::forStatement()
-// {
-//     consumeOrThrow(LeftParen, "Expected '(' after 'for'.");
-
-//     // Initializer
-//     StatementUPTR initializer;
-//     if (match(Semicolon))
-//     {
-//         initializer = nullptr;
-//     }
-//     else if (match(Var))
-//     {
-//         initializer = varDeclaration();
-//     }
-//     else
-//     {
-//         initializer = expressionStatement();
-//     }
-
-//     ExpressionUPTR condition;
-//     if (!checkCurrentToken(Semicolon))
-//     {
-//         condition = expression();
-//     }
-//     consumeOrThrow(Semicolon, "Expect ';' after loop condition.");
-
-//     ExpressionUPTR increment;
-//     if (!checkCurrentToken(RightParen))
-//     {
-//         increment = expression();
-//     }
-//     consumeOrThrow(RightParen, "Expect ')' after for clauses.");
-
-//     StatementUPTR body = statement();
-
-//     if (increment)
-//     {
-//         StatementUPTR incrementStatement = std::make_unique<ExpressionStatement>(std::move(increment));
-//         std::vector<StatementUPTR> statements;
-//         statements.emplace_back(std::move(body));
-//         statements.emplace_back(std::move(incrementStatement));
-//         body = std::make_unique<BlockStatement>(std::move(statements));
-//     }
-
-//     if (!condition)
-//     {
-//         condition = std::make_unique<LiteralExpression>(true);
-//     }
-
-//     body = std::make_unique<WhileStatement>(std::move(condition), std::move(body));
-
-//     if (!initializer)
-//     {
-//         std::vector<StatementUPTR> statements;
-//         statements.emplace_back(std::move(initializer));
-//         statements.emplace_back(std::move(body));
-//         body = std::make_unique<BlockStatement>(std::move(statements));
-//     }
-
-//     return body;
-// }
-
-// StatementUPTR Parser::printStatement()
-// {
-//     // Logger::debug("printStatement");
-//     auto value = expression();
-//     consumeOrThrow(TokenType::Semicolon, "Expect ';' after value.");
-//     return std::make_unique<PrintStatement>(std::move(value));
-// }
-
-// StatementUPTR Parser::expressionStatement()
-// {
-//     // Logger::debug("expressionStatement");
-//     auto value = expression();
-//     consumeOrThrow(TokenType::Semicolon, "Expect ';' after value.");
-//     return std::make_unique<ExpressionStatement>(std::move(value));
-// }
-
-// StatementUPTR Parser::ifStatement()
-// {
-//     consumeOrThrow(LeftParen, "Expected '(' after 'if'.");
-//     auto expr = expression();
-//     consumeOrThrow(RightParen, "Expected ')' after if condition.");
-
-//     auto thenBranch = statement();
-//     std::optional<StatementUPTR> elseBranch;
-//     if (match(Else))
-//     {
-//         elseBranch = statement();
-//     }
-//     return std::make_unique<IfStatement>(std::move(expr), std::move(thenBranch), std::move(elseBranch));
-// }
-
-// StatementUPTR Parser::whileStatement()
-// {
-//     consumeOrThrow(LeftParen, "Expected '(' after 'while'.");
-//     auto condition = expression();
-//     consumeOrThrow(RightParen, "Expected ')' after condition.");
-//     auto body = statement();
-
-//     return std::make_unique<WhileStatement>(std::move(condition), std::move(body));
-// }
-
-// StatementUPTR Parser::returnStatement()
-// {
-//     auto keyword = previous();
-//     std::optional<ExpressionUPTR> value;
-//     if (!checkCurrentToken(Semicolon))
-//     {
-//         value.emplace(expression());
-//     }
-//     consumeOrThrow(Semicolon, "Expected ';' after return value.");
-
-//     return std::make_unique<ReturnStatement>(std::move(keyword), std::move(value));
-// }
-
-// StatementUPTR Parser::block()
-// {
-//     std::vector<StatementUPTR> statements;
-
-//     while (!checkCurrentToken(RightBrace) && !isAtEnd())
-//     {
-//         statements.emplace_back(declaration());
-//     }
-//     consumeOrThrow(RightBrace, "Expected '}' after block.");
-//     return std::make_unique<BlockStatement>(std::move(statements));
-// }
-
-// ExpressionUPTR Parser::expression()
-// {
-//     // Logger::debug("expression");
-//     return assignment();
-// }
-
-// ExpressionUPTR Parser::buildBinaryExpression(ExpressionProducingFn lowerPrecedenceFn, MatchingFn matchFn)
-// {
-//     // Logger::debug("building binary expression");
-//     auto lowerPrecedence = lowerPrecedenceFn();
-//     while (matchFn())
-//     {
-//         Token op = previous();
-//         auto right = lowerPrecedenceFn();
-//         lowerPrecedence = std::make_unique<BinaryExpression>(std::move(lowerPrecedence), op, std::move(right));
-//     }
-//     return lowerPrecedence;
-// }
-
-// ExpressionUPTR Parser::assignment()
-// {
-//     // Logger::debug("assignment");
-//     std::unique_ptr<Expression> expr = comma();
-
-//     if (match(Equal))
-//     {
-//         Token equals = previous();
-//         auto value = assignment();
-//         if (auto&& var = dynamic_cast<VariableExpression*>(expr.get()))
-//         {
-//             return std::make_unique<AssignmentExpression>(var->name, std::move(value));
-//         }
-//         error(equals, "Invalid assignment target");
-//     }
-//     return expr;
-// }
-
-// ExpressionUPTR Parser::comma()
-// {
-//     // Logger::debug("comma");
-//     ExpressionProducingFn lowerPrecedenceFn = [this]() { return logicOr(); };
-//     MatchingFn matchingFn = [this]()
-//     {
-//         using enum TokenType;
-//         return match(Comma);
-//     };
-
-//     return buildBinaryExpression(std::move(lowerPrecedenceFn), std::move(matchingFn));
-// }
-
-// ExpressionUPTR Parser::logicOr()
-// {
-//     // Logger::debug("logicOr");
-//     ExpressionUPTR expr = logicAnd();
-//     while (match(Or))
-//     {
-//         Token op = previous();
-//         ExpressionUPTR right = logicAnd();
-//         expr = std::make_unique<LogicalExpression>(std::move(expr), op, std::move(right));
-//     }
-//     return expr;
-// }
-
-// ExpressionUPTR Parser::logicAnd()
-// {
-//     // Logger::debug("logicAnd");
-//     ExpressionUPTR expr = equality();
-//     while (match(And))
-//     {
-//         Token op = previous();
-//         ExpressionUPTR right = equality();
-//         expr = std::make_unique<LogicalExpression>(std::move(expr), op, std::move(right));
-//     }
-//     return expr;
-// }
-
-// ExpressionUPTR Parser::equality()
-// {
-//     // Logger::debug("equality");
-//     ExpressionProducingFn lowerPrecedenceFn = [this]() { return comparison(); };
-//     MatchingFn matchingFn = [this]()
-//     {
-//         using enum TokenType;
-//         return match(BangEqual) || match(EqualEqual);
-//     };
-
-//     return buildBinaryExpression(std::move(lowerPrecedenceFn), std::move(matchingFn));
-// }
-
-// ExpressionUPTR Parser::comparison()
-// {
-//     // Logger::debug("comparison");
-//     using enum TokenType;
-//     ExpressionProducingFn lowerPrecedenceFn = [this]() { return term(); };
-//     MatchingFn matchingFn = [this]()
-//     { return match(Greater) || match(Less) || match(GreaterEqual) || match(LessEqual); };
-
-//     return buildBinaryExpression(std::move(lowerPrecedenceFn), std::move(matchingFn));
-// }
-
-// ExpressionUPTR Parser::term()
-// {
-//     // Logger::debug("term");
-//     using enum TokenType;
-//     ExpressionProducingFn lowerPrecedenceFn = [this]() { return factor(); };
-//     MatchingFn matchingFn = [this]() { return match(Plus) || match(Minus); };
-
-//     return buildBinaryExpression(std::move(lowerPrecedenceFn), std::move(matchingFn));
-// }
-
-// ExpressionUPTR Parser::factor()
-// {
-//     // Logger::debug("factor");
-//     using enum TokenType;
-//     ExpressionProducingFn lowerPrecedenceFn = [this]() { return unary(); };
-//     MatchingFn matchingFn = [this]() { return match(Slash) || match(Star); };
-
-//     return buildBinaryExpression(std::move(lowerPrecedenceFn), std::move(matchingFn));
-// }
-
-// ExpressionUPTR Parser::unary()
-// {
-//     // Logger::debug("unary");
-//     using enum TokenType;
-//     while (match(Bang) || match(Minus))
-//     {
-//         Token op = previous();
-//         return std::make_unique<UnaryExpression>(op, std::move(unary()));
-//     }
-//     return call();
-// }
-
-// ExpressionUPTR Parser::call()
-// {
-//     auto expr = primary();
-
-//     for (;;)
-//     {
-//         if (!match(LeftParen))
-//         {
-//             break;
-//         }
-//         expr = finishCall(std::move(expr));
-//     }
-//     return expr;
-// }
-
-// ExpressionUPTR Parser::finishCall(ExpressionUPTR callee)
-// {
-//     std::vector<ExpressionUPTR> arguments;
-//     if (!checkCurrentToken(RightParen))
-//     {
-//         do
-//         {
-//             if (arguments.size() >= 255)
-//             {
-//                 error(peek(), "Can't have more than 255 arguments.");
-//             }
-//             arguments.emplace_back(expression());
-//         } while (match(Comma));
-//     }
-
-//     Token paren = consumeOrThrow(RightParen, "Expect ')' after arguments.");
-//     return std::make_unique<CallExpression>(std::move(callee), paren, std::move(arguments));
-// }
-
-namespace
-{
-
-// ExpressionUPTR literalExpressionFromLiteralToken(const Token& tok)
-// {
-//     if (std::holds_alternative<double>(tok.literal))
-//     {
-//         return std::make_unique<LiteralExpression>(std::get<double>(tok.literal));
-//     }
-//     else if (std::holds_alternative<std::string>(tok.literal))
-//     {
-//         return std::make_unique<LiteralExpression>(std::get<std::string>(tok.literal));
-//     }
-//     else
-//     {
-//         return std::make_unique<LiteralExpression>(NullLiteral{});
-//     }
-// }
-
-} // namespace
-
-// ExpressionUPTR Parser::primary()
-// {
-//     // Logger::debug("primary");
-//     using enum TokenType;
-//     if (match(False))
-//     {
-//         return std::make_unique<LiteralExpression>(false);
-//     }
-//     if (match(True))
-//     {
-//         return std::make_unique<LiteralExpression>(true);
-//     }
-//     if (match(Nil))
-//     {
-//         return std::make_unique<LiteralExpression>(NullLiteral{});
-//     }
-
-//     if (match(Number) || match(String))
-//     {
-//         return literalExpressionFromLiteralToken(previous());
-//     }
-
-//     if (match(Identifier))
-//     {
-//         return std::make_unique<VariableExpression>(previous());
-//     }
-
-//     if (match(LeftParen))
-//     {
-//         auto expr = expression();
-//         consumeOrThrow(RightParen, "Expected ')' after expression.");
-//         return std::make_unique<GroupingExpression>(std::move(expr));
-//     }
-
-//     // If nothing matched so far this is not a valid expression
-//     throw error(peek(), "Expected expression.");
-// }
-
-Token Parser::consumeOrThrow(TokenType type, const std::string& error_msg)
-{
-    if (checkCurrentToken(type))
+    // Expect first token to be 'Feature'
+    if (!match({ TokenType::Feature }))
     {
-        return advance();
+        throw ParserException("Expected 'Feature' keyword at start.");
     }
-    throw error(peek(), error_msg);
+    consumeOrThrow(TokenType::Colon, "Expected ':' after 'Feature'");
+    Token featureNameToken = advance();
+    if (featureNameToken.type != TokenType::STRING_LITERAL)
+    {
+        throw ParserException("Expected feature name after 'Feature:'");
+    }
+
+    auto featureStmt = std::make_unique<FeatureStatement>();
+    featureStmt->name = featureNameToken.lexeme;
+
+    // Now parse optional background or scenario statements
+    while (!isAtEnd())
+    {
+        if (match({ TokenType::Background }))
+        {
+            auto background = parseBackgroundStatement();
+            featureStmt->children.push_back(std::move(background));
+        }
+        else if (match({ TokenType::Scenario }))
+        {
+            auto scenario = parseScenarioStatement();
+            featureStmt->children.push_back(std::move(scenario));
+        }
+        else if (match({ TokenType::ScenarioOutline }))
+        {
+            auto outline = parseScenarioOutlineStatement();
+            featureStmt->children.push_back(std::move(outline));
+        }
+        else
+        {
+            // If none matched, we might break or skip unrecognized tokens
+            break;
+        }
+    }
+
+    return featureStmt;
 }
 
-auto Parser::error(const Token& token, const std::string& msg) -> ParserException
+StatementUPTR Parser::parseBackgroundStatement()
 {
-    Logger::error(token.print());
-    return { token, msg };
+    // We already consumed the Background token
+    consumeOrThrow(TokenType::COLON, "Expected ':' after 'Background'");
+    auto backgroundStmt = std::make_unique<BackgroundStatement>();
+
+    // Parse step statements until we see a token that suggests we're done
+    while (!isAtEnd())
+    {
+        // If next token is Scenario or ScenarioOutline or EOF, we stop
+        if (check(TokenType::Scenario) || check(TokenType::ScenarioOutline) || isAtEnd())
+        {
+            break;
+        }
+        // Otherwise parse a step
+        backgroundStmt->steps.push_back(std::unique_ptr<Statement>(parseStepStatement().release()));
+    }
+
+    return backgroundStmt;
 }
 
+StatementUPTR Parser::parseScenarioStatement()
+{
+    // We already consumed Scenario token
+    consumeOrThrow(TokenType::COLON, "Expected ':' after 'Scenario'");
+    Token scenarioNameToken = advance();
+    if (scenarioNameToken.type != TokenType::STRING_LITERAL)
+    {
+        throw ParserException("Expected scenario name after 'Scenario:'");
+    }
+
+    auto scenarioStmt = std::make_unique<ScenarioStatement>();
+    scenarioStmt->name = scenarioNameToken.lexeme;
+
+    // Parse step statements
+    while (!isAtEnd())
+    {
+        if (check(TokenType::Scenario) || check(TokenType::ScenarioOutline) || check(TokenType::Feature) ||
+            check(TokenType::Eof))
+        {
+            break;
+        }
+        scenarioStmt->steps.push_back(std::unique_ptr<Statement>(parseStepStatement().release()));
+    }
+
+    return scenarioStmt;
+}
+
+StatementUPTR Parser::parseScenarioOutlineStatement()
+{
+    consumeOrThrow(TokenType::COLON, "Expected ':' after 'Scenario Outline'");
+    Token outlineNameToken = advance();
+    if (outlineNameToken.type != TokenType::STRING_LITERAL)
+    {
+        throw ParserException("Expected outline name after 'Scenario Outline:'");
+    }
+
+    auto outlineStmt = std::make_unique<ScenarioOutlineStatement>();
+    outlineStmt->name = outlineNameToken.lexeme;
+
+    // Parse the steps until we see 'Examples' or scenario boundary tokens
+    while (!isAtEnd())
+    {
+        if (check(TokenType::Examples) || check(TokenType::Scenario) || check(TokenType::ScenarioOutline) ||
+            check(TokenType::Feature) || check(TokenType::Eof))
+        {
+            break;
+        }
+        outlineStmt->steps.push_back(std::unique_ptr<Statement>(parseStepStatement().release()));
+    }
+
+    // If we see 'Examples', parse an ExamplesStatement
+    if (match({ TokenType::Examples }))
+    {
+        outlineStmt->examples = parseExamplesStatement();
+    }
+
+    return outlineStmt;
+}
+
+StatementUPTR Parser::parseExamplesStatement()
+{
+    consumeOrThrow(TokenType::COLON, "Expected ':' after 'Examples'");
+    auto examplesStmt = std::make_unique<ExamplesStatement>();
+    // Usually, the next lines might be a table:
+    // Examples:
+    //   | x | y | result |
+    //   | 42| 24| 66     |
+
+    while (!isAtEnd())
+    {
+        if (check(TokenType::Scenario) || check(TokenType::ScenarioOutline) || check(TokenType::Feature) ||
+            check(TokenType::Eof))
+        {
+            break;
+        }
+
+        // parse a row:
+        // match TokenType::Pipe, then read until the next EOL or second Pipe
+        // For demonstration, let's assume each row is on its own line
+        std::vector<std::string> rowValues;
+
+        // this is a naive approach, you’d likely loop until you see EOL or isAtEnd()
+        while (!check(TokenType::END_OF_LINE) && !isAtEnd())
+        {
+            if (match({ TokenType::Pipe }))
+            {
+                continue;
+            }
+            if (peek().type == TokenType::STRING_LITERAL)
+            {
+                rowValues.push_back(advance().lexeme);
+            }
+            else
+            {
+                break; // or skip unknown tokens
+            }
+        }
+        // consume EOL
+        match({ TokenType::END_OF_LINE });
+
+        // If it's the first row we parse, treat it as headers
+        // If we've already got headers, treat subsequent rows as data
+        if (examplesStmt->headers.empty())
+        {
+            examplesStmt->headers = rowValues;
+        }
+        else
+        {
+            examplesStmt->rows.push_back(rowValues);
+        }
+    }
+
+    return examplesStmt;
+}
+
+StatementUPTR Parser::parseStepStatement()
+{
+    // Gherkin step keywords: GIVEN, WHEN, THEN, AND, BUT
+    Token keywordToken = advance();
+    std::string keyword;
+    switch (keywordToken.type)
+    {
+    case TokenType::Given:
+        keyword = "Given";
+        break;
+    case TokenType::When:
+        keyword = "When";
+        break;
+    case TokenType::Then:
+        keyword = "Then";
+        break;
+    case TokenType::And:
+        keyword = "And";
+        break;
+    // case TokenType::BUT:
+    //     keyword = "But";
+    //     break;
+    default:
+        throw ParserException("Expected step keyword (Given/When/Then/And/But?).");
+    }
+
+    // The rest of the line is the step text
+    std::string stepText;
+    while (!check(TokenType::END_OF_LINE) && !isAtEnd())
+    {
+        stepText += advance().lexeme + " ";
+    }
+    // consume EOL
+    match({ TokenType::END_OF_LINE });
+
+    auto stepStmt = std::make_unique<StepStatement>();
+    stepStmt->keyword = keyword;
+    stepStmt->text = stepText;
+    return stepStmt;
+}
+
+//
+// Utility methods
+//
 Token Parser::peek()
 {
-    return m_tokens.at(m_current);
+    return m_tokens[m_current];
 }
 
 Token Parser::previous()
 {
-    if (!m_current)
-    {
-        throw std::domain_error{ "Invalid range" };
-    }
-    return m_tokens.at(m_current - 1);
+    return m_tokens[m_current - 1];
 }
 
 bool Parser::isAtEnd()
@@ -525,64 +273,69 @@ bool Parser::isAtEnd()
     return peek().type == TokenType::Eof;
 }
 
-bool Parser::checkCurrentToken(TokenType type)
+bool Parser::check(TokenType type)
 {
-    if (!isAtEnd() && peek().type == type)
-    {
-        return true;
-    }
-    return false;
+    if (isAtEnd())
+        return false;
+    return peek().type == type;
 }
 
-bool Parser::match(TokenType type)
+bool Parser::match(std::initializer_list<TokenType> types)
 {
-    if (checkCurrentToken(type))
+    for (auto t : types)
     {
-        advance();
-        return true;
+        if (check(t))
+        {
+            advance();
+            return true;
+        }
     }
     return false;
 }
 
 Token Parser::advance()
 {
-    // Logger::debug("advance");
     if (!isAtEnd())
-    {
         m_current++;
-    }
     return previous();
 }
 
-// void Parser::synchronize()
-// {
-//     using enum TokenType;
-//     advance();
+Token Parser::consumeOrThrow(TokenType type, const std::string& error_msg)
+{
+    if (check(type))
+        return advance();
+    throw ParserException(error_msg + " Found token: " + peek().lexeme);
+}
 
-//     while (!isAtEnd())
-//     {
-//         if (previous().type == Semicolon)
-//         {
-//             return;
-//         }
+void Parser::synchronize()
+{
+    // Not always crucial for Gherkin. In typical usage, you might skip tokens
+    // until you see a well-known marker like `Scenario`, `Feature`, etc.
+    advance();
 
-//         switch (peek().type)
-//         {
-//         case Class:
-//         case Fun:
-//         case Var:
-//         case For:
-//         case If:
-//         case While:
-//         case Print:
-//         case Return:
-//             return;
-//         default:
-//             break;
-//         }
+    while (!isAtEnd())
+    {
+        if (previous().type == TokenType::END_OF_LINE)
+            return;
 
-//         advance();
-//     }
-// }
+        switch (peek().type)
+        {
+        case TokenType::Feature:
+        case TokenType::Scenario:
+        case TokenType::ScenarioOutline:
+        case TokenType::Background:
+            return;
+        default:
+            break;
+        }
+
+        advance();
+    }
+}
+
+Parser::ParserException Parser::error(const Token& token, const std::string& msg)
+{
+    return ParserException(msg + " at token: " + token.lexeme);
+}
 
 } // namespace pep

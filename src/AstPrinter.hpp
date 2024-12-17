@@ -32,82 +32,35 @@ public:
         std::cout << std::endl;
     }
 
-    Object visit(const BinaryExpression& expr) override
+    Object visit(const StepDescriptionExpression& expr) override
     {
-        std::cout << "Binary(";
-        std::cout << "OP: " << expr.op;
-        std::cout << ", Left: ";
-        expr.left->accept(*this);
-        std::cout << ", Right: ";
-        expr.right->accept(*this);
-        std::cout << ")";
-        return NullLiteral{};
-    }
-
-    Object visit(const LiteralExpression& expr) override
-    {
-        std::visit([](auto&& value) { std::cout << value; }, expr.value);
-        return NullLiteral{};
-    }
-
-    Object visit(const UnaryExpression& expr) override
-    {
-        std::cout << "Unary( " << expr.op << " ";
-        expr.right->accept(*this);
-        std::cout << ")";
-        return NullLiteral{};
-    }
-
-    Object visit(const GroupingExpression& expr) override
-    {
-        std::cout << "Grouping(";
-        expr.expression->accept(*this);
-        std::cout << ")";
-        return NullLiteral{};
-    }
-
-    Object visit(const VariableExpression& expr) override
-    {
-        std::cout << "Variable("
-                  << " Name: " << expr.name;
-        std::cout << ")";
-        return NullLiteral{};
-    }
-
-    Object visit(const AssignmentExpression& expr) override
-    {
-        std::cout << "Assignment("
-                  << " Name: " << expr.name;
-        expr.expr->accept(*this);
-        std::cout << ")";
-        return NullLiteral{};
-    }
-
-    Object visit(const LogicalExpression& expr) override
-    {
-        std::cout << "Logical(";
-        std::cout << "OP: " << expr.op;
-        std::cout << ", Left: ";
-        expr.left->accept(*this);
-        std::cout << ", Right: ";
-        expr.right->accept(*this);
-        std::cout << ")";
-        return NullLiteral{};
-    }
-
-    Object visit(const CallExpression& expr) override
-    {
-        std::cout << "Call(";
-        std::cout << "Callee: ";
-        expr.callee->accept(*this);
-        std::cout << ", Arguments: ";
-        for (const auto& arg : expr.arguments)
+        std::cout << "StepDescriptionExpression" << std::endl;
+        // Print all tokens
+        for (const auto& token : expr.tokens)
         {
-            arg->accept(*this);
+            std::cout << token.print() << std::endl;
         }
-        std::cout << ")";
-        return NullLiteral{};
-    };
+        return {};
+    }
+
+    Object visit(const ExampleExpression& expr) override
+    {
+        std::cout << "ExampleExpression" << std::endl;
+        // Print all tokens
+        for (const auto& token : expr.header)
+        {
+            std::cout << token.print() << std::endl;
+        }
+
+        for (const auto& row : expr.data)
+        {
+            for (const auto& token : row)
+            {
+                std::cout << token.print() << std::endl;
+            }
+        }
+        return {};
+    }
 };
 
 } // namespace pep

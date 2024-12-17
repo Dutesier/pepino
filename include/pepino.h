@@ -17,6 +17,13 @@
 
 #include <iostream>
 #include <string>
+
+// Macro for a step definition
+#define WHEN(description, lambda)                                                                                      \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        pet::StepRegistry::instance().registerStep(description, lambda);                                               \
+    } while (0);
 namespace pep
 {
 

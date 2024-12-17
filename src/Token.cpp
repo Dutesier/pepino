@@ -17,7 +17,6 @@
 #include "Token.h"
 
 #include <assert.h>
-#include <format>
 #include <iostream>
 #include <sstream>
 
@@ -34,6 +33,8 @@ std::string tokenTypeToString(TokenType type)
     {
     case TokenType::Pipe:
         return "Pipe";
+    case TokenType::Colon:
+        return "Colon";
     case TokenType::Comment:
         return "Comment";
     case TokenType::Identifier:
