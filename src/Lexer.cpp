@@ -16,6 +16,7 @@
 
 #include "Lexer.h"
 #include "Logger.h"
+#include "Token.h"
 
 #include <sstream>
 #include <string>
@@ -109,8 +110,7 @@ Token Lexer::getNextToken()
         // Ignore whitespace.
         return rerun();
     case '\n':
-        m_line++;
-        return rerun();
+        return Token{ .type = Eol, .location = "\n", .lineNo = m_line++ };
 
     // Literals
     // case '"':

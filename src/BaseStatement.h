@@ -79,7 +79,7 @@ class StepStatement : public Statement
 public:
     std::string keyword; // e.g. "Given", "When", "Then"
     std::vector<std::unique_ptr<Expression>> expressions;
-    // Each Expression could be a LiteralExpression or PlaceholderExpression
+    // Each Expression could be a LiteralExpression or something else
 
     StepStatement(std::string keyword, std::vector<std::unique_ptr<Expression>> expressions)
         : keyword(std::move(keyword))

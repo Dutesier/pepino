@@ -17,6 +17,7 @@
 #pragma once
 
 #include <ostream>
+#include <stdexcept>
 #include <string_view>
 #include <variant>
 
@@ -49,6 +50,7 @@ enum TokenType
     And,
 
     Eof,
+    Eol,
 
     Error,
 };
@@ -62,6 +64,15 @@ struct Token
     unsigned int lineNo{};
 
     std::string print() const;
+
+    template <typename T> T literalAs()
+    {
+        if (!std::holds_alternative<T>(literal))
+        {
+            throw std::domain_error{ "Literal is not of provided type" };
+        }
+        return std::get<T>(literal);
+    }
 };
 bool operator==(const Token& lhs, const Token& rhs);
 std::ostream& operator<<(std::ostream& os, const Token& me);

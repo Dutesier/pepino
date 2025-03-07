@@ -47,6 +47,7 @@ public:
 
     int run();
     Object visit(const LiteralExpression& expr) override;
+    Object visit(const PlaceholderExpression& expr) override;
 
     void visit(const FeatureStatement& stmt) override;
     void visit(const BackgroundStatement& stmt) override;

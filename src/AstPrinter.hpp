@@ -17,6 +17,7 @@
 #pragma once
 
 #include "BaseExpression.h"
+#include "Object.h"
 
 #include <iostream>
 
@@ -32,35 +33,8 @@ public:
         std::cout << std::endl;
     }
 
-    Object visit(const StepDescriptionExpression& expr) override
-    {
-        std::cout << "StepDescriptionExpression" << std::endl;
-        // Print all tokens
-        for (const auto& token : expr.tokens)
-        {
-            std::cout << token.print() << std::endl;
-        }
-        return {};
-    }
-
-    Object visit(const ExampleExpression& expr) override
-    {
-        std::cout << "ExampleExpression" << std::endl;
-        // Print all tokens
-        for (const auto& token : expr.header)
-        {
-            std::cout << token.print() << std::endl;
-        }
-
-        for (const auto& row : expr.data)
-        {
-            for (const auto& token : row)
-            {
-                std::cout << token.print() << std::endl;
-            }
-        }
-        return {};
-    }
+    Object visit(const LiteralExpression& /*expr*/) override { return NullLiteral{}; }
+    Object visit(const PlaceholderExpression& /*expr*/) override { return NullLiteral{}; }
 };
 
 } // namespace pep

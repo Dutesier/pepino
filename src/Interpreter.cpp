@@ -230,16 +230,58 @@ int Interpreter::interpret(const std::string& content)
     return EXIT_SUCCESS;
 }
 
-Object Interpreter::visit(const StepDescriptionExpression& expr)
+Object Interpreter::visit(const LiteralExpression& expr)
 {
     (void)expr;
     return {};
 }
 
-Object Interpreter::visit(const ExampleExpression& expr)
+Object Interpreter::visit(const PlaceholderExpression& expr)
 {
     (void)expr;
     return {};
+}
+
+void visit(const FeatureStatement& stmt)
+{
+    (void)stmt;
+    return;
+}
+
+void visit(const BackgroundStatement& stmt)
+{
+    (void)stmt;
+    return;
+}
+
+void visit(const ScenarioStatement& stmt)
+{
+    (void)stmt;
+    return;
+}
+
+void visit(const StepStatement& stmt)
+{
+    (void)stmt;
+    return;
+}
+
+void visit(const ScenarioOutlineStatement& stmt)
+{
+    (void)stmt;
+    return;
+}
+
+void visit(const ExamplesStatement& stmt)
+{
+    (void)stmt;
+    return;
+}
+
+void visit(const TagStatement& stmt)
+{
+    (void)stmt;
+    return;
 }
 
 void Interpreter::logError(unsigned int line, std::string_view location, std::string_view message)

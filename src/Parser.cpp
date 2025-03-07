@@ -42,13 +42,13 @@ StatementUPTR Parser::parseFeatureStatement()
     }
     consumeOrThrow(TokenType::Colon, "Expected ':' after 'Feature'");
     Token featureNameToken = advance();
-    if (featureNameToken.type != TokenType::STRING_LITERAL)
+    if (featureNameToken.type != TokenType::String)
     {
         throw ParserException("Expected feature name after 'Feature:'");
     }
 
     auto featureStmt = std::make_unique<FeatureStatement>();
-    featureStmt->name = featureNameToken.lexeme;
+    featureStmt->name = featureNameToken.literal;
 
     // Now parse optional background or scenario statements
     while (!isAtEnd())
@@ -81,7 +81,7 @@ StatementUPTR Parser::parseFeatureStatement()
 StatementUPTR Parser::parseBackgroundStatement()
 {
     // We already consumed the Background token
-    consumeOrThrow(TokenType::COLON, "Expected ':' after 'Background'");
+    consumeOrThrow(TokenType::Colon, "Expected ':' after 'Background'");
     auto backgroundStmt = std::make_unique<BackgroundStatement>();
 
     // Parse step statements until we see a token that suggests we're done
@@ -102,7 +102,7 @@ StatementUPTR Parser::parseBackgroundStatement()
 StatementUPTR Parser::parseScenarioStatement()
 {
     // We already consumed Scenario token
-    consumeOrThrow(TokenType::COLON, "Expected ':' after 'Scenario'");
+    consumeOrThrow(TokenType::Colon, "Expected ':' after 'Scenario'");
     Token scenarioNameToken = advance();
     if (scenarioNameToken.type != TokenType::STRING_LITERAL)
     {
@@ -110,7 +110,7 @@ StatementUPTR Parser::parseScenarioStatement()
     }
 
     auto scenarioStmt = std::make_unique<ScenarioStatement>();
-    scenarioStmt->name = scenarioNameToken.lexeme;
+    scenarioStmt->name = scenarioNameToken.literalAs<std::string>();
 
     // Parse step statements
     while (!isAtEnd())
@@ -128,15 +128,15 @@ StatementUPTR Parser::parseScenarioStatement()
 
 StatementUPTR Parser::parseScenarioOutlineStatement()
 {
-    consumeOrThrow(TokenType::COLON, "Expected ':' after 'Scenario Outline'");
+    consumeOrThrow(TokenType::Colon, "Expected ':' after 'Scenario Outline'");
     Token outlineNameToken = advance();
-    if (outlineNameToken.type != TokenType::STRING_LITERAL)
+    if (outlineNameToken.type != TokenType::String)
     {
         throw ParserException("Expected outline name after 'Scenario Outline:'");
     }
 
     auto outlineStmt = std::make_unique<ScenarioOutlineStatement>();
-    outlineStmt->name = outlineNameToken.lexeme;
+    outlineStmt->name = std::get<std::string>(outlineNameToken.literal);
 
     // Parse the steps until we see 'Examples' or scenario boundary tokens
     while (!isAtEnd())
@@ -160,7 +160,7 @@ StatementUPTR Parser::parseScenarioOutlineStatement()
 
 StatementUPTR Parser::parseExamplesStatement()
 {
-    consumeOrThrow(TokenType::COLON, "Expected ':' after 'Examples'");
+    consumeOrThrow(TokenType::Colon, "Expected ':' after 'Examples'");
     auto examplesStmt = std::make_unique<ExamplesStatement>();
     // Usually, the next lines might be a table:
     // Examples:
@@ -181,15 +181,15 @@ StatementUPTR Parser::parseExamplesStatement()
         std::vector<std::string> rowValues;
 
         // this is a naive approach, you’d likely loop until you see EOL or isAtEnd()
-        while (!check(TokenType::END_OF_LINE) && !isAtEnd())
+        while (!check(TokenType::Eol) && !isAtEnd())
         {
             if (match({ TokenType::Pipe }))
             {
                 continue;
             }
-            if (peek().type == TokenType::STRING_LITERAL)
+            if (peek().type == TokenType::String)
             {
-                rowValues.push_back(advance().lexeme);
+                rowValues.push_back(advance().literalAs<std::string>());
             }
             else
             {
@@ -197,7 +197,7 @@ StatementUPTR Parser::parseExamplesStatement()
             }
         }
         // consume EOL
-        match({ TokenType::END_OF_LINE });
+        match({ TokenType::Eol });
 
         // If it's the first row we parse, treat it as headers
         // If we've already got headers, treat subsequent rows as data
@@ -242,12 +242,12 @@ StatementUPTR Parser::parseStepStatement()
 
     // The rest of the line is the step text
     std::string stepText;
-    while (!check(TokenType::END_OF_LINE) && !isAtEnd())
+    while (!check(TokenType::Eol) && !isAtEnd())
     {
-        stepText += advance().lexeme + " ";
+        stepText += advance().literalAs<std::string>() + " ";
     }
     // consume EOL
-    match({ TokenType::END_OF_LINE });
+    match({ TokenType::Eol });
 
     auto stepStmt = std::make_unique<StepStatement>();
     stepStmt->keyword = keyword;
@@ -304,7 +304,7 @@ Token Parser::consumeOrThrow(TokenType type, const std::string& error_msg)
 {
     if (check(type))
         return advance();
-    throw ParserException(error_msg + " Found token: " + peek().lexeme);
+    throw ParserException(error_msg + " Found token: " + peek().literalAs<std::string>());
 }
 
 void Parser::synchronize()
@@ -315,7 +315,7 @@ void Parser::synchronize()
 
     while (!isAtEnd())
     {
-        if (previous().type == TokenType::END_OF_LINE)
+        if (previous().type == TokenType::Eol)
             return;
 
         switch (peek().type)
@@ -335,7 +335,7 @@ void Parser::synchronize()
 
 Parser::ParserException Parser::error(const Token& token, const std::string& msg)
 {
-    return ParserException(msg + " at token: " + token.lexeme);
+    return ParserException(msg + " at token: " + token.literalAs<std::string>());
 }
 
 } // namespace pep

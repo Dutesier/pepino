@@ -63,6 +63,8 @@ std::string tokenTypeToString(TokenType type)
         return "And";
     case TokenType::Eof:
         return "Eof";
+    case TokenType::Eol:
+        return "Eol";
     case TokenType::Error:
         return "ERROR";
     default:
