@@ -13,22 +13,19 @@
  * Author:   Dutesier
  *
  *******************************************************************************/
+#pragma once
 
-#include "pepino.h"
+#include "ITestRunner.h"
 
-#include <gtest/gtest.h>
-
-class PepinoTest : public testing::Test
+namespace pep
 {
+// BasicTestRunner implements ITestRunner by querying the StepRegistry singleton.
+// It looks for a callback associated with the provided test name (or step name)
+// and invokes it if found.
+class BasicTestRunner : public ITestRunner
+{
+public:
+    int runTests(const std::string& testName) const override;
 };
 
-// TEST_F(PepinoTest, pepinoCompiles)
-// {
-//     pep::run();
-// }
-
-TEST_F(PepinoTest, pepinoRuns)
-{
-    auto ret = pep::run("tests/data/test.feature");
-    EXPECT_EQ(ret, 0);
-}
+} // namespace pep

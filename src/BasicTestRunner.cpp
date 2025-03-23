@@ -12,16 +12,29 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
+ *******************************************************************************/
 
-#include "../src/Object.h"
+#include "BasicTestRunner.h"
 
-#include <gtest/gtest.h>
+#include "steps/StepRegistry.h"
 
-using namespace pep;
+#include <iostream>
 
-TEST(testObject, compiles)
+namespace pep
 {
-    Object str = std::string{"Hello"};
-    print(str);
+
+int BasicTestRunner::runTests(const std::string& testName) const
+{
+    try
+    {
+        StepRegistry::getInstance().executeStep(testName);
+        return 0; // success
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Caught exception: " << e.what() << std::endl;
+        return 1; // failure (exception caught)
+    }
 }
+
+} // namespace pep

@@ -13,22 +13,20 @@
  * Author:   Dutesier
  *
  *******************************************************************************/
+#pragma once
 
-#include "pepino.h"
+#include <string>
 
-#include <gtest/gtest.h>
-
-class PepinoTest : public testing::Test
+namespace pep
 {
+
+// InputParser is responsible for parsing the raw user input.
+// Here, it simply returns the input as the test name, but in a more complex scenario
+// it could validate or extract more complex filtering criteria.
+class InputParser
+{
+public:
+    std::string parseInput(const std::string& input) const;
 };
 
-// TEST_F(PepinoTest, pepinoCompiles)
-// {
-//     pep::run();
-// }
-
-TEST_F(PepinoTest, pepinoRuns)
-{
-    auto ret = pep::run("tests/data/test.feature");
-    EXPECT_EQ(ret, 0);
-}
+} // namespace pep

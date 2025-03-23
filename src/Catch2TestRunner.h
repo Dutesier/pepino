@@ -13,22 +13,19 @@
  * Author:   Dutesier
  *
  *******************************************************************************/
+#pragma once
 
-#include "pepino.h"
+#include "ITestRunner.h"
 
-#include <gtest/gtest.h>
-
-class PepinoTest : public testing::Test
+namespace pep
 {
+
+// Catch2TestRunner is a concrete implementation of ITestRunner using Catch2.
+// It sets up a Catch::Session and passes the test filter as a command-line argument.
+class Catch2TestRunner : public ITestRunner
+{
+public:
+    int runTests(const std::string& testName) const override;
 };
 
-// TEST_F(PepinoTest, pepinoCompiles)
-// {
-//     pep::run();
-// }
-
-TEST_F(PepinoTest, pepinoRuns)
-{
-    auto ret = pep::run("tests/data/test.feature");
-    EXPECT_EQ(ret, 0);
-}
+} // namespace pep

@@ -14,21 +14,9 @@
  *
  *******************************************************************************/
 
-#include "pepino.h"
+#include <catch2/catch_test_macros.hpp>
 
-#include <gtest/gtest.h>
-
-class PepinoTest : public testing::Test
+TEST_CASE("hello", "[example]")
 {
-};
-
-// TEST_F(PepinoTest, pepinoCompiles)
-// {
-//     pep::run();
-// }
-
-TEST_F(PepinoTest, pepinoRuns)
-{
-    auto ret = pep::run("tests/data/test.feature");
-    EXPECT_EQ(ret, 0);
+    REQUIRE(1 + 1 == 2);
 }

@@ -13,39 +13,33 @@
  * Author:   Dutesier
  *
  *******************************************************************************/
+#pragma once
 
-#include "pepino.h"
-#include "BasicTestRunner.h"
-#include "Catch2TestRunner.h"
-#include "TestController.h"
-
-#include <fstream>
-#include <iostream>
+#include <stdexcept>
+#include <string>
 
 namespace pep
 {
 
-int debug_runStep(const std::string& pattern)
+// Primary template declaration (no definition)
+template <typename T> T convert(const std::string& str);
+
+// Specialization for int
+template <> inline int convert<int>(const std::string& str)
 {
-    TestController interpreter(std::make_unique<BasicTestRunner>());
-    return interpreter.executeTest(pattern);
+    return std::stoi(str);
 }
 
-int run(const std::string& filepath)
+// Specialization for double
+template <> inline double convert<double>(const std::string& str)
 {
-    // Read from the file at filepath
-    std::ifstream file(filepath);
-    if (!file.is_open())
-    {
-        std::cerr << "Could not open the file: " << filepath << std::endl;
-        return -1;
-    }
+    return std::stod(str);
+}
 
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    file.close();
-
-    TestController interpreter(std::make_unique<Catch2TestRunner>());
-    return interpreter.executeTest(content);
+// Specialization for std::string (the identity function)
+template <> inline std::string convert<std::string>(const std::string& str)
+{
+    return str;
 }
 
 } // namespace pep

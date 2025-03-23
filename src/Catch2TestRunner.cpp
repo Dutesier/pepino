@@ -12,24 +12,26 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
+ *******************************************************************************/
 
-#include "../src/AstPrinter.hpp"
+#include "Catch2TestRunner.h"
 
-#include <gtest/gtest.h>
+#include <catch2/catch_session.hpp>
 
-using namespace pep;
-
-TEST(testAstPrinter, compiles)
+namespace pep
 {
-    using enum pep::TokenType;
 
-    // TODO: uncomment
-    // auto expr = BinaryExpression(
-    //     std::make_unique<UnaryExpression>(
-    //         Token{ Minus, std::monostate{} }, std::make_unique<LiteralExpression>(double{ 123 })),
-    //     Token{ Star, std::monostate{} },
-    //     std::make_unique<GroupingExpression>(std::make_unique<LiteralExpression>(45.67)));
-    // AstPrinter printer;
-    // printer.print(expr);
+int Catch2TestRunner::runTests(const std::string& testName) const
+{
+    // Create a Catch2 session
+    Catch::Session session;
+
+    // Prepare arguments to filter tests by name.
+    // The first argument is the executable name (dummy here) and the second is the test filter.
+    std::vector<const char*> args = { "executable", testName.c_str() };
+
+    // Run only tests whose names match the provided filter.
+    return session.run(static_cast<int>(args.size()), args.data());
 }
+
+} // namespace pep

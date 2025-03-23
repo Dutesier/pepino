@@ -13,22 +13,21 @@
  * Author:   Dutesier
  *
  *******************************************************************************/
+#pragma once
 
-#include "pepino.h"
+#include <string>
 
-#include <gtest/gtest.h>
-
-class PepinoTest : public testing::Test
+namespace pep
 {
+
+// ITestRunner declares a simple interface for running tests by name.
+// This abstraction allows you to change the underlying test framework without
+// affecting the rest of the code (Dependency Inversion Principle).
+class ITestRunner
+{
+public:
+    virtual ~ITestRunner() = default;
+    virtual int runTests(const std::string& testName) const = 0;
 };
 
-// TEST_F(PepinoTest, pepinoCompiles)
-// {
-//     pep::run();
-// }
-
-TEST_F(PepinoTest, pepinoRuns)
-{
-    auto ret = pep::run("tests/data/test.feature");
-    EXPECT_EQ(ret, 0);
-}
+} // namespace pep

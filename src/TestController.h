@@ -12,29 +12,30 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
-
+ *******************************************************************************/
 #pragma once
 
-#include "BaseExpression.h"
-#include "Object.h"
+#include "ITestRunner.h"
+#include "InputParser.h"
 
-#include <iostream>
+#include <memory>
 
 namespace pep
 {
 
-class AstPrinter : public ExpressionVisitor
+// TestController orchestrates the process:
+// It gets the input string, uses InputParser to extract the test name,
+// and then calls ITestRunner to run the corresponding Catch2 test.
+class TestController
 {
 public:
-    void print(const Expression& expr)
-    {
-        expr.accept(*this);
-        std::cout << std::endl;
-    }
+    TestController(std::unique_ptr<ITestRunner> runner);
 
-    Object visit(const LiteralExpression& /*expr*/) override { return NullLiteral{}; }
-    Object visit(const PlaceholderExpression& /*expr*/) override { return NullLiteral{}; }
+    int executeTest(const std::string& input);
+
+private:
+    std::unique_ptr<ITestRunner> testRunner;
+    InputParser inputParser;
 };
 
 } // namespace pep

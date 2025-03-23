@@ -12,25 +12,22 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
+ *******************************************************************************/
 
-#pragma once
-
-#include "BaseStatement.h"
-#include "Environment.h"
-#include "Object.h"
+#include "TestController.h"
 
 namespace pep
 {
 
-class Function : public Callable
+TestController::TestController(std::unique_ptr<ITestRunner> runner)
+    : testRunner(std::move(runner))
 {
-public:
-    Function(const FunctionStatement& declaration, std::shared_ptr<Environment> closure);
+}
 
-private:
-    const FunctionStatement& declaration;
-    std::shared_ptr<Environment> closure;
-};
+int TestController::executeTest(const std::string& input)
+{
+    std::string testName = inputParser.parseInput(input);
+    return testRunner->runTests(testName);
+}
 
 } // namespace pep

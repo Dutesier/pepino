@@ -15,20 +15,30 @@
  *******************************************************************************/
 
 #include "pepino.h"
+#include "steps/steps.h"
 
 #include <gtest/gtest.h>
 
-class PepinoTest : public testing::Test
+class PepinoStepsTest : public testing::Test
 {
 };
 
-// TEST_F(PepinoTest, pepinoCompiles)
-// {
-//     pep::run();
-// }
-
-TEST_F(PepinoTest, pepinoRuns)
+TEST_F(PepinoStepsTest, pepinoRunsSingleStep)
 {
-    auto ret = pep::run("tests/data/test.feature");
+    auto ret = pep::debug_runStep("a number 42");
     EXPECT_EQ(ret, 0);
 }
+
+TEST_F(PepinoStepsTest, typeAssertion)
+{
+    auto ret = pep::debug_runStep("a name 42");
+    auto ret2 = pep::debug_runStep("a name against");
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret2, 0);
+}
+
+STEP("^a number (\\d+)$", [](int x) { std::cout << "Received int: " << x << std::endl; });
+
+STEP("^a name (\\w+)$", [](std::string name) { std::cout << "Received name: " << name << std::endl; });
+
+STEP("^a name (\\d+)$", [](int name) { std::cout << "Received name w/ number: " << name << std::endl; });
