@@ -15,27 +15,64 @@
  *******************************************************************************/
 #pragma once
 
+#include <memory>
+#include <string>
+#include <vector>
+
 namespace pep
 {
-
-struct Statement
+// Base class for all statements.
+class Statement
 {
+public:
+    virtual ~Statement() = default;
 };
 
-struct Feature : public Statement
+class StepStatement : public Statement
 {
+public:
+    std::string keyword; // e.g., "Given", "When", "Then"
+    std::string text;    // The step text; may contain placeholders like "<var>"
 };
 
-struct Background : public Statement
+class BackgroundStatement : public Statement
 {
+public:
+    std::vector<std::unique_ptr<StepStatement>> steps;
 };
 
-struct Scenario : public Statement
+class ScenarioStatement : public Statement
 {
+public:
+    std::vector<std::string> tags;
+    std::string name;
+    std::vector<std::unique_ptr<StepStatement>> steps;
 };
 
-struct Step : public Statement
+class ExamplesStatement : public Statement
 {
+public:
+    std::vector<std::string> headers;
+    std::vector<std::vector<std::string>> rows;
+};
+
+class ScenarioOutlineStatement : public Statement
+{
+public:
+    std::vector<std::string> tags;
+    std::string name;
+    std::vector<std::unique_ptr<StepStatement>> steps;
+    std::unique_ptr<ExamplesStatement> examples;
+};
+
+class FeatureStatement : public Statement
+{
+public:
+    std::vector<std::string> tags;
+    std::string name;
+    std::unique_ptr<BackgroundStatement> background;
+    std::vector<std::unique_ptr<ScenarioStatement>> scenarios;
+    std::vector<std::unique_ptr<ScenarioOutlineStatement>> scenarioOutlines;
 };
 
 } // namespace pep

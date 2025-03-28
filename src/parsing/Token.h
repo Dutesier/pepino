@@ -14,3 +14,56 @@
  *
  *******************************************************************************/
 #pragma once
+
+#include <string>
+
+namespace pep
+{
+
+enum class TokenType
+{
+    // Structural keywords.
+    Feature,
+    Background,
+    Scenario,
+    ScenarioOutline,
+    Examples,
+
+    // Steps
+    Given,
+    When,
+    Then,
+    And,
+    But,
+
+    // Punctuation
+    Colon,
+    Pipe, // for examples table columns
+
+    // Others
+    Tag,           // lines starting with '@'
+    StringLiteral, // quoted strings or the remaining text of a line
+    EOL,           // end-of-line
+    EndOfFile,
+
+    // For placeholders (e.g., <var>)
+    LeftAngle,
+    RightAngle,
+
+    // Identifier (for unquoted names)
+    Identifier
+};
+
+struct Token
+{
+    TokenType type;
+    std::string lexeme;
+    int line;
+};
+
+std::string tokenAsString(const Token& token);
+
+bool isKeyword(const TokenType& type);
+bool isStep(const TokenType& type);
+
+} // namespace pep

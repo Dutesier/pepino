@@ -14,3 +14,28 @@
  *
  *******************************************************************************/
 #pragma once
+
+#include "Token.h"
+#include <string>
+#include <vector>
+
+namespace pep
+{
+class Lexer
+{
+public:
+    explicit Lexer(const std::string& source);
+    std::vector<Token> tokenize();
+
+private:
+    std::string m_source;
+    size_t m_current = 0;
+    int m_line = 1;
+
+    char peek() const;
+    char advance();
+    bool isAtEnd() const;
+    void addToken(TokenType type, const std::string& lexeme, std::vector<Token>& tokens);
+};
+
+} // namespace pep

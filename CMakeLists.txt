@@ -25,6 +25,9 @@ set(SRC_FILES
     src/Catch2TestRunner.cpp
     src/InputParser.cpp
     src/TestController.cpp
+    src/parsing/Lexer.cpp
+    src/parsing/Parser.cpp
+    src/parsing/Token.cpp
     )
 
 # Add the library target
@@ -51,6 +54,8 @@ add_executable(PepinoTest
     tests/pepino_test.cpp
     tests/step_implementations.cpp
     tests/steps_test.cpp
+    tests/lexer_test.cpp
+    tests/parser_test.cpp
     )
 
 
