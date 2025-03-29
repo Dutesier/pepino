@@ -37,8 +37,13 @@ TEST_F(PepinoStepsTest, typeAssertion)
     EXPECT_EQ(ret2, 0);
 }
 
-STEP("^a number (\\d+)$", [](int x) { std::cout << "Received int: " << x << std::endl; });
+GIVEN("^a number (\\d+)$",
+      [](int x) { std::cout << "Received int: " << x << std::endl; });
 
-STEP("^a name (\\w+)$", [](std::string name) { std::cout << "Received name: " << name << std::endl; });
+GIVEN("^a name (\\w+)$", [](std::string name) {
+    std::cout << "Received name: " << name << std::endl;
+});
 
-STEP("^a name (\\d+)$", [](int name) { std::cout << "Received name w/ number: " << name << std::endl; });
+GIVEN("^a name (\\d+)$", [](int name) {
+    std::cout << "Received name w/ number: " << name << std::endl;
+});

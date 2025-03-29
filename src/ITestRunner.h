@@ -15,7 +15,8 @@
  *******************************************************************************/
 #pragma once
 
-#include <string>
+#include "parsing/Statement.h"
+#include <memory>
 
 namespace pep
 {
@@ -27,7 +28,7 @@ class ITestRunner
 {
 public:
     virtual ~ITestRunner() = default;
-    virtual int runTests(const std::string& testName) const = 0;
+    virtual int runTests(std::unique_ptr<FeatureStatement> feature) const = 0;
 };
 
 } // namespace pep

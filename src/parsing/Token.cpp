@@ -61,6 +61,8 @@ std::string tokenAsString(const Token& token)
         return ">";
     case TokenType::Identifier:
         return "Identifier->" + token.lexeme;
+    case TokenType::Placeholder:
+        return "Placeholder->" + token.lexeme;
     default:
         return "Unknown";
     }

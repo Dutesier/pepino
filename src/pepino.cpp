@@ -16,11 +16,7 @@
 
 #include "pepino.h"
 #include "BasicTestRunner.h"
-#include "Catch2TestRunner.h"
 #include "TestController.h"
-
-#include <fstream>
-#include <iostream>
 
 namespace pep
 {
@@ -33,19 +29,8 @@ int debug_runStep(const std::string& pattern)
 
 int run(const std::string& filepath)
 {
-    // Read from the file at filepath
-    std::ifstream file(filepath);
-    if (!file.is_open())
-    {
-        std::cerr << "Could not open the file: " << filepath << std::endl;
-        return -1;
-    }
-
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    file.close();
-
-    TestController interpreter(std::make_unique<Catch2TestRunner>());
-    return interpreter.executeTest(content);
+    TestController interpreter(std::make_unique<BasicTestRunner>());
+    return interpreter.executeTest(filepath);
 }
 
 } // namespace pep

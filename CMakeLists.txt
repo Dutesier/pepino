@@ -23,7 +23,6 @@ set(SRC_FILES
     src/Logger.cpp
     src/BasicTestRunner.cpp
     src/Catch2TestRunner.cpp
-    src/InputParser.cpp
     src/TestController.cpp
     src/parsing/Lexer.cpp
     src/parsing/Parser.cpp

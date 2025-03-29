@@ -17,7 +17,9 @@
 #include "Parser.h"
 #include "../Logger.h"
 #include "Token.h"
+
 #include <memory>
+#include <numeric>
 #include <vector>
 
 namespace pep
@@ -57,16 +59,46 @@ bool Parser::match(TokenType type)
     return true;
 }
 
+void Parser::advanceEmptyLines()
+{
+    while (peek().type == TokenType::EOL)
+    {
+        advance();
+    }
+}
+
+std::string Parser::consumeLiteralUntilEOL()
+{
+    std::vector<Token> text;
+
+    while (!isAtEnd() && peek().type != TokenType::EOL)
+    {
+        text.push_back(advance());
+    }
+    std::string literal = std::accumulate(
+        std::next(text.begin()), text.end(), text.front().lexeme,
+        [](const std::string& a, const Token& b) {
+            if (b.type != TokenType::StringLiteral)
+            {
+                throw std::runtime_error("Expected StringLiteral, got: " +
+                                         tokenAsString(b));
+            }
+            return a + " " + b.lexeme;
+        });
+    return literal;
+}
+
 const Token& Parser::consume(TokenType type, const std::string& message)
 {
-    Logger::debug("Consuming token: " + peek().lexeme + " of type: " + tokenAsString(peek()));
     if (peek().type == type)
     {
-        Logger::debug("Token type matches: " + tokenAsString(peek()) + "-" + tokenAsString(Token{.type = type}));
         return advance();
     }
-    Logger::error("Expected token of type: " + tokenAsString(Token{.type = type}) + ", got: " + tokenAsString(peek()));
-    throw std::runtime_error(message + " at line " + std::to_string(peek().line));
+    Logger::error(
+        "Expected token of type: " + tokenAsString(Token{.type = type}) +
+        ", got: " + tokenAsString(peek()));
+    throw std::runtime_error(message + " at line " +
+                             std::to_string(peek().line));
 }
 
 std::vector<std::string> Parser::parseTags()
@@ -82,15 +114,18 @@ std::vector<std::string> Parser::parseTags()
 std::unique_ptr<FeatureStatement> Parser::parseFeature()
 {
     auto feature = std::make_unique<FeatureStatement>();
+    advanceEmptyLines();
     feature->tags = parseTags();
+    advanceEmptyLines();
 
     consume(TokenType::Feature, "Expected 'Feature' keyword");
     if (previous().lexeme != "Feature")
     {
-        throw std::runtime_error("Expected 'Feature' keyword, got " + previous().lexeme);
+        throw std::runtime_error("Expected 'Feature' keyword, got " +
+                                 previous().lexeme);
     }
     consume(TokenType::Colon, "Expected ':' after 'Feature'");
-    feature->name = consume(TokenType::StringLiteral, "Expected feature name").lexeme;
+    feature->name = consumeLiteralUntilEOL();
 
     // Parse children: background, scenarios, and scenario outlines.
     std::vector<std::string> nextTags;
@@ -102,15 +137,34 @@ std::unique_ptr<FeatureStatement> Parser::parseFeature()
         }
         else if (match(TokenType::Scenario))
         {
-            feature->scenarios.push_back(parseScenarioStatement());
+            auto scenario = parseScenarioStatement();
+            if (!nextTags.empty())
+            {
+                scenario->tags = nextTags;
+                nextTags.clear();
+            }
+            feature->scenarios.push_back(std::move(scenario));
         }
         else if (match(TokenType::ScenarioOutline))
         {
-            feature->scenarioOutlines.push_back(parseScenarioOutlineStatement());
+            auto scenarioOutlines = parseScenarioOutlineStatement();
+            if (!nextTags.empty())
+            {
+                scenarioOutlines->tags = nextTags;
+                nextTags.clear();
+            }
+            feature->scenarioOutlines.push_back(std::move(scenarioOutlines));
         }
-        else if (match(TokenType::Tag))
+        else if (peek().type == TokenType::Tag)
         {
+            // If we encounter a tag, we can assume it's for the next scenario
+            // or outline.
             nextTags = parseTags();
+            Logger::debug("Storing tag: ");
+            for (auto& tag : nextTags)
+            {
+                Logger::debug(tag);
+            }
         }
         else
         {
@@ -127,6 +181,7 @@ std::unique_ptr<BackgroundStatement> Parser::parseBackgroundStatement()
     auto background = std::make_unique<BackgroundStatement>();
     consume(TokenType::Colon, "Expected ':' after 'Background'");
     // Parse steps until a new keyword or EOF.
+    advanceEmptyLines();
     while (!isAtEnd() && isStep(peek().type))
     {
         background->steps.push_back(parseStepStatement());
@@ -138,9 +193,10 @@ std::unique_ptr<ScenarioStatement> Parser::parseScenarioStatement()
 {
     auto scenario = std::make_unique<ScenarioStatement>();
     // A scenario might have preceding tags.
-    scenario->tags = parseTags();
+    // scenario->tags = parseTags();
     consume(TokenType::Colon, "Expected ':' after 'Scenario'");
-    scenario->name = consume(TokenType::StringLiteral, "Expected scenario name").lexeme;
+    scenario->name = consumeLiteralUntilEOL();
+    advanceEmptyLines();
     while (!isAtEnd() && isStep(peek().type))
     {
         scenario->steps.push_back(parseStepStatement());
@@ -148,31 +204,112 @@ std::unique_ptr<ScenarioStatement> Parser::parseScenarioStatement()
     return scenario;
 }
 
-std::unique_ptr<ScenarioOutlineStatement> Parser::parseScenarioOutlineStatement()
+std::unique_ptr<ScenarioOutlineStatement> Parser::
+    parseScenarioOutlineStatement()
 {
     auto outline = std::make_unique<ScenarioOutlineStatement>();
-    outline->tags = parseTags();
+    // outline->tags = parseTags();
     consume(TokenType::Colon, "Expected ':' after 'ScenarioOutline'");
-    outline->name = consume(TokenType::StringLiteral, "Expected scenario outline name").lexeme;
+    outline->name = consumeLiteralUntilEOL();
+    advanceEmptyLines();
     while (!isAtEnd() && isStep(peek().type))
     {
         outline->steps.push_back(parseStepStatement());
     }
 
-    if (match(TokenType::StringLiteral) && previous().lexeme == "Examples")
+    if (match(TokenType::Examples))
     {
         outline->examples = parseExamplesStatement();
     }
     return outline;
 }
 
+std::vector<std::string> Parser::parseTableRow()
+{
+    std::vector<std::string> row;
+    // Each row must start with a Pipe.
+    consume(TokenType::Pipe, "Expected '|' at start of examples table row");
+
+    while (!isAtEnd() && peek().type != TokenType::EOL)
+    {
+        if (peek().type == TokenType::Pipe)
+        {
+            Logger::debug("Empty cell found");
+            advance();
+            row.push_back("");
+            continue;
+        }
+        if (peek().type == TokenType::StringLiteral)
+        {
+            Logger::debug("Cell found: " + peek().lexeme);
+            row.push_back(advance().lexeme);
+        }
+        else
+        {
+            Logger::warn("Unexpected token in table row: " + peek().lexeme);
+            break;
+        }
+        if (peek().type == TokenType::Pipe)
+        {
+            advance(); // consume the pipe
+        }
+        else
+        {
+            // If we don't find a pipe, we should break out of the loop.
+            Logger::warn("Expected '|' after cell value, found: " +
+                         peek().lexeme);
+            break;
+        }
+    }
+    match(TokenType::EOL);
+    return row;
+}
+
+// Parses an Examples statement.
+// Format (after consuming the "Examples" keyword and colon):
+//   [Optional EOL tokens]
+//   | header1 | header2 | ... |
+//   | value1  | value2  | ... |
+//   | value3  | value4  | ... |
+// Returns an ExamplesStatement AST node.
 std::unique_ptr<ExamplesStatement> Parser::parseExamplesStatement()
 {
     auto examples = std::make_unique<ExamplesStatement>();
+
     consume(TokenType::Colon, "Expected ':' after 'Examples'");
-    // Simplified: Assuming headers are a single string literal token
-    examples->headers.push_back(consume(TokenType::StringLiteral, "Expected header").lexeme);
-    // TODO: Parsing of table rows.
+
+    // Optionally consume any EOL tokens immediately after the "Examples:"
+    // header.
+    while (match(TokenType::EOL))
+    {
+    }
+
+    // There must be at least one row (the header row).
+    if (peek().type != TokenType::Pipe)
+    {
+        throw std::runtime_error(
+            "Expected examples table row starting with '|'");
+    }
+
+    // Parse header row.
+    examples->headers = parseTableRow();
+    const auto rowSize = examples->headers.size();
+
+    // Parse additional rows.
+    while (!isAtEnd() && peek().type == TokenType::Pipe)
+    {
+        auto row = parseTableRow();
+        if (row.size() != rowSize)
+        {
+            throw std::runtime_error("Row size mismatch in examples table");
+        }
+        // Only add non-empty rows.
+        if (!row.empty())
+        {
+            examples->rows.push_back(row);
+        }
+    }
+    advanceEmptyLines();
     return examples;
 }
 
@@ -184,7 +321,32 @@ std::unique_ptr<StepStatement> Parser::parseStepStatement()
         throw std::runtime_error("Expected a step keyword");
     }
     step->keyword = advance().lexeme;
-    step->text = consume(TokenType::StringLiteral, "Expected step text").lexeme;
+
+    // Consume the text in this  line. Check for <variable> placeholders.
+    while (!isAtEnd() && peek().type != TokenType::EOL)
+    {
+        if (peek().type == TokenType::StringLiteral)
+        {
+            step->text.push_back(advance());
+        }
+        else if (peek().type == TokenType::LeftAngle)
+        {
+            advance();
+            auto var =
+                consume(TokenType::StringLiteral, "Expected variable name")
+                    .lexeme;
+            consume(TokenType::RightAngle, "Expected '>' after variable name");
+            step->text.push_back({TokenType::Placeholder, var, peek().line});
+            step->variables[var] = ""; // Store the variable name.
+        }
+        else
+        {
+            Logger::warn("Unexpected token in step text: " + peek().lexeme);
+            break;
+        }
+    }
+    advanceEmptyLines();
+
     return step;
 }
 

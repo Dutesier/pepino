@@ -43,9 +43,12 @@ private:
     const Token& peek() const;
     const Token& previous() const;
     const Token& advance();
+    void advanceEmptyLines();
+    std::string consumeLiteralUntilEOL();
     bool match(TokenType type);
     const Token& consume(TokenType type, const std::string& message);
     std::vector<std::string> parseTags();
+    std::vector<std::string> parseTableRow();
 
     const std::vector<Token>& m_tokens;
     size_t m_current = 0;

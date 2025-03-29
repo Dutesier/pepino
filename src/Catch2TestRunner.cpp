@@ -15,14 +15,22 @@
  *******************************************************************************/
 
 #include "Catch2TestRunner.h"
+#include "Logger.h"
 
 #include <catch2/catch_session.hpp>
 
 namespace pep
 {
 
-int Catch2TestRunner::runTests(const std::string& testName) const
+int Catch2TestRunner::runTests(std::unique_ptr<FeatureStatement> feature) const
 {
+    if (!feature)
+    {
+        Logger::warn("No feature to run.");
+        return 1; // failure (no feature)
+    }
+    Logger::info("Unimplemented: running feature name as test name");
+    auto testName = feature->name;
     // Create a Catch2 session
     Catch::Session session;
 

@@ -16,6 +16,12 @@
 
 #include "TestController.h"
 
+#include "parsing/Lexer.h"
+#include "parsing/Parser.h"
+#include "parsing/Statement.h"
+
+#include <fstream>
+
 namespace pep
 {
 
@@ -26,8 +32,27 @@ TestController::TestController(std::unique_ptr<ITestRunner> runner)
 
 int TestController::executeTest(const std::string& input)
 {
-    std::string testName = inputParser.parseInput(input);
-    return testRunner->runTests(testName);
+    // Read the file content
+    std::ifstream file(input);
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Could not open file: " + input);
+    }
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+    file.close();
+    // Tokenize the content
+    Lexer lexer(content);
+    std::vector<Token> tokens = lexer.tokenize();
+    // Parse the tokens into a feature statement
+    Parser parser(tokens);
+    std::unique_ptr<FeatureStatement> feature = parser.parseFeature();
+    if (!feature)
+    {
+        throw std::runtime_error("Failed to parse feature from file: " + input);
+    }
+
+    return testRunner->runTests(std::move(feature));
 }
 
 } // namespace pep

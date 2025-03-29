@@ -15,8 +15,11 @@
  *******************************************************************************/
 #pragma once
 
+#include "Token.h"
+
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace pep
@@ -32,7 +35,8 @@ class StepStatement : public Statement
 {
 public:
     std::string keyword; // e.g., "Given", "When", "Then"
-    std::string text;    // The step text; may contain placeholders like "<var>"
+    std::vector<Token> text;                                // The step text; may contain placeholders like "<var>"
+    std::unordered_map<std::string, std::string> variables; // Placeholder values
 };
 
 class BackgroundStatement : public Statement

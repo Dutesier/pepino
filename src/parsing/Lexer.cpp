@@ -17,6 +17,7 @@
 #include "Lexer.h"
 #include "../Logger.h"
 #include "Token.h"
+#include <string_view>
 
 namespace pep
 {
@@ -97,12 +98,25 @@ std::vector<Token> Lexer::tokenize()
         {
             std::string literal;
             literal.push_back(c);
-            while (!isAtEnd() && !std::isspace(peek()) && (peek() != '>'))
+            while (!isAtEnd() && !std::isspace(peek()) && (peek() != '>') &&
+                   (peek() != '<') && (peek() != ':'))
             {
                 literal.push_back(advance());
             }
-            // Here we check if literal equals "Feature", "Background", etc.
-            tokens.push_back({keywordType(literal), literal, m_line});
+            auto type = keywordType(literal);
+            if (type == TokenType::Scenario)
+            {
+                // Check if next word is "Outline"
+                constexpr std::string_view Outline = " Outline";
+                if (m_current + Outline.size() < m_source.size() &&
+                    m_source.substr(m_current, Outline.size()) == Outline)
+                {
+                    literal += Outline.data();
+                    m_current += Outline.size();
+                    type = TokenType::ScenarioOutline;
+                }
+            }
+            tokens.push_back({type, literal, m_line});
         }
     }
     tokens.push_back({TokenType::EndOfFile, "", m_line});
@@ -131,7 +145,8 @@ bool Lexer::isAtEnd() const
     return m_current >= m_source.size();
 }
 
-void Lexer::addToken(TokenType type, const std::string& lexeme, std::vector<Token>& tokens)
+void Lexer::addToken(TokenType type, const std::string& lexeme,
+                     std::vector<Token>& tokens)
 {
     tokens.push_back({type, lexeme, m_line});
 }

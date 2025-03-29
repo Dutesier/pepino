@@ -22,16 +22,26 @@ namespace pep
 #define TOKEN_PASTE(x, y) x##y
 #define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
 
+#define TOKEN_PASTE(x, y) x##y
+#define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
+
 #ifndef STEP
-#define STEP(pattern, callback)                                                                                        \
-    namespace                                                                                                          \
-    {                                                                                                                  \
-    const bool TOKEN_PASTE2(step_registration_dummy_, __COUNTER__) = []()                                              \
-    {                                                                                                                  \
-        pep::StepRegistry::getInstance().registerStep(pattern, callback);                                              \
-        return true;                                                                                                   \
-    }();                                                                                                               \
+#define STEP(type, pattern, callback)                                          \
+    namespace                                                                  \
+    {                                                                          \
+    const bool TOKEN_PASTE2(step_registration_dummy_, __COUNTER__) = []() {    \
+        pep::StepRegistry::getInstance().registerStep(type, pattern,           \
+                                                      callback);               \
+        return true;                                                           \
+    }();                                                                       \
     }
 #endif
+
+#define GIVEN(pattern, callback)                                               \
+    STEP(pep::StepRegistry::StepType::Given, pattern, callback)
+#define WHEN(pattern, callback)                                                \
+    STEP(pep::StepRegistry::StepType::When, pattern, callback)
+#define THEN(pattern, callback)                                                \
+    STEP(pep::StepRegistry::StepType::Then, pattern, callback)
 
 } // namespace pep

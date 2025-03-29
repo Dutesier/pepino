@@ -49,6 +49,7 @@ enum class TokenType
     // For placeholders (e.g., <var>)
     LeftAngle,
     RightAngle,
+    Placeholder,
 
     // Identifier (for unquoted names)
     Identifier
@@ -59,6 +60,8 @@ struct Token
     TokenType type;
     std::string lexeme;
     int line;
+
+    bool operator==(const Token& other) const = default;
 };
 
 std::string tokenAsString(const Token& token);

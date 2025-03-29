@@ -16,6 +16,8 @@
 #pragma once
 
 #include "ITestRunner.h"
+#include "parsing/Statement.h"
+#include <memory>
 
 namespace pep
 {
@@ -25,7 +27,7 @@ namespace pep
 class Catch2TestRunner : public ITestRunner
 {
 public:
-    int runTests(const std::string& testName) const override;
+    int runTests(std::unique_ptr<FeatureStatement> feature) const override;
 };
 
 } // namespace pep
