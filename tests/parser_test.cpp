@@ -31,11 +31,10 @@ TEST(ParserTest, ParseMinimalFeature)
     // Tokens:
     //   Feature : MyFeature
     //   EndOfFile
-    std::vector<Token> tokens = {
-        Token(TokenType::Feature, "Feature", 1),
-        Token(TokenType::Colon, ":", 1),
-        Token(TokenType::StringLiteral, "MyFeature", 1),
-        Token(TokenType::EndOfFile, "", 1)};
+    std::vector<Token> tokens = { Token{ TokenType::Feature, "Feature", 1 },
+                                  Token{ TokenType::Colon, ":", 1 },
+                                  Token{ TokenType::StringLiteral, "MyFeature", 1 },
+                                  Token{ TokenType::EndOfFile, "", 1 } };
 
     Parser parser(tokens);
     std::unique_ptr<FeatureStatement> feature = parser.parseFeature();
@@ -57,17 +56,16 @@ TEST(ParserTest, ParseFeatureWithBackground)
     //   Background :
     //     Given a user exists
     //   EndOfFile
-    std::vector<Token> tokens = {
-        Token(TokenType::Feature, "Feature", 1),
-        Token(TokenType::Colon, ":", 1),
-        Token(TokenType::StringLiteral, "FeatureWithBackground", 1),
-        // Background section
-        Token(TokenType::Background, "Background", 2),
-        Token(TokenType::Colon, ":", 2),
-        // One step in background:
-        Token(TokenType::Given, "Given", 2),
-        Token(TokenType::StringLiteral, "a user exists", 2),
-        Token(TokenType::EndOfFile, "", 2)};
+    std::vector<Token> tokens = { Token{ TokenType::Feature, "Feature", 1 },
+                                  Token{ TokenType::Colon, ":", 1 },
+                                  Token{ TokenType::StringLiteral, "FeatureWithBackground", 1 },
+                                  // Background section
+                                  Token{ TokenType::Background, "Background", 2 },
+                                  Token{ TokenType::Colon, ":", 2 },
+                                  // One step in background:
+                                  Token{ TokenType::Given, "Given", 2 },
+                                  Token{ TokenType::StringLiteral, "a user exists", 2 },
+                                  Token{ TokenType::EndOfFile, "", 2 } };
 
     Parser parser(tokens);
     std::unique_ptr<FeatureStatement> feature = parser.parseFeature();
@@ -77,8 +75,7 @@ TEST(ParserTest, ParseFeatureWithBackground)
     EXPECT_EQ(feature->background->steps.size(), 1);
     auto& step = feature->background->steps[0];
     EXPECT_EQ(step->keyword, "Given");
-    std::vector<Token> expectedText = {
-        Token(TokenType::StringLiteral, "a user exists", 2)};
+    std::vector<Token> expectedText = { Token{ TokenType::StringLiteral, "a user exists", 2 } };
     EXPECT_EQ(step->text, expectedText);
 }
 
@@ -94,21 +91,21 @@ TEST(ParserTest, ParseFeatureWithScenario)
     //   Scenario : SuccessfulScenario
     //     Given user is logged in
     //   EndOfFile
-    std::vector<Token> tokens = {
-        // Feature-level tag:
-        Token(TokenType::Tag, "@feature", 1),
-        Token(TokenType::Feature, "Feature", 1),
-        Token(TokenType::Colon, ":", 1),
-        Token(TokenType::StringLiteral, "FeatureWithScenario", 1),
-        // Scenario-level (preceded by a tag):
-        Token(TokenType::Tag, "@scenario", 2),
-        Token(TokenType::Scenario, "Scenario", 2),
-        Token(TokenType::Colon, ":", 2),
-        Token(TokenType::StringLiteral, "SuccessfulScenario", 2),
-        // A step in the scenario:
-        Token(TokenType::Given, "Given", 3),
-        Token(TokenType::StringLiteral, "user is logged in", 3),
-        Token(TokenType::EndOfFile, "", 3)};
+    std::vector<Token> tokens = { // Feature-level tag:
+                                  Token{ TokenType::Tag, "@feature", 1 },
+                                  Token{ TokenType::Feature, "Feature", 1 },
+                                  Token{ TokenType::Colon, ":", 1 },
+                                  Token{ TokenType::StringLiteral, "FeatureWithScenario", 1 },
+                                  // Scenario-level (preceded by a tag):
+                                  Token{ TokenType::Tag, "@scenario", 2 },
+                                  Token{ TokenType::Scenario, "Scenario", 2 },
+                                  Token{ TokenType::Colon, ":", 2 },
+                                  Token{ TokenType::StringLiteral, "SuccessfulScenario", 2 },
+                                  // A step in the scenario:
+                                  Token{ TokenType::Given, "Given", 3 },
+                                  Token{ TokenType::StringLiteral, "user is logged in", 3 },
+                                  Token{ TokenType::EndOfFile, "", 3 }
+    };
 
     Parser parser(tokens);
     std::unique_ptr<FeatureStatement> feature = parser.parseFeature();
@@ -126,8 +123,7 @@ TEST(ParserTest, ParseFeatureWithScenario)
     ASSERT_EQ(scenario->steps.size(), 1);
     auto& step = scenario->steps[0];
     EXPECT_EQ(step->keyword, "Given");
-    std::vector<Token> expectedText = {
-        Token(TokenType::StringLiteral, "user is logged in", 3)};
+    std::vector<Token> expectedText = { Token{ TokenType::StringLiteral, "user is logged in", 3 } };
     EXPECT_EQ(step->text, expectedText);
 }
 
@@ -145,37 +141,38 @@ TEST(ParserTest, ParseFeatureWithScenarioOutline)
     //     | user1    |
     //     | user2    |
     //   EndOfFile
-    std::vector<Token> tokens = {
-        Token(TokenType::Feature, "Feature", 1),
-        Token(TokenType::Colon, ":", 1),
-        Token(TokenType::StringLiteral, "FeatureWithOutline", 1),
-        // Scenario Outline section:
-        Token(TokenType::ScenarioOutline, "ScenarioOutline", 2),
-        Token(TokenType::Colon, ":", 2),
-        Token(TokenType::StringLiteral, "OutlineScenario", 2),
-        // Step in scenario outline:
-        Token(TokenType::Given, "Given", 3),
-        Token(TokenType::StringLiteral, "user ", 3),
-        Token(TokenType::LeftAngle, "<", 3),
-        Token(TokenType::StringLiteral, "username", 3),
-        Token(TokenType::RightAngle, ">", 3),
-        Token(TokenType::StringLiteral, " attempts login", 3),
-        // Examples section:
-        Token(TokenType::Examples, "Examples", 4),
-        Token(TokenType::Colon, ":", 4),
-        // For simplicity, assume header is a single token:
-        Token(TokenType::Pipe, "|", 5),
-        Token(TokenType::StringLiteral, "username", 5),
-        Token(TokenType::Pipe, "|", 5), Token(TokenType::EOL, "", 5),
-        // Example rows:
-        Token(TokenType::Pipe, "|", 6),
-        Token(TokenType::StringLiteral, "user1", 6),
-        Token(TokenType::Pipe, "|", 6), Token(TokenType::EOL, "", 6),
-        Token(TokenType::Pipe, "|", 7),
-        Token(TokenType::StringLiteral, "user2", 7),
-        Token(TokenType::Pipe, "|", 7),
-        // End of file:
-        Token(TokenType::EndOfFile, "", 8)};
+    std::vector<Token> tokens = { Token{ TokenType::Feature, "Feature", 1 },
+                                  Token{ TokenType::Colon, ":", 1 },
+                                  Token{ TokenType::StringLiteral, "FeatureWithOutline", 1 },
+                                  // Scenario Outline section:
+                                  Token{ TokenType::ScenarioOutline, "ScenarioOutline", 2 },
+                                  Token{ TokenType::Colon, ":", 2 },
+                                  Token{ TokenType::StringLiteral, "OutlineScenario", 2 },
+                                  // Step in scenario outline:
+                                  Token{ TokenType::Given, "Given", 3 },
+                                  Token{ TokenType::StringLiteral, "user ", 3 },
+                                  Token{ TokenType::LeftAngle, "<", 3 },
+                                  Token{ TokenType::StringLiteral, "username", 3 },
+                                  Token{ TokenType::RightAngle, ">", 3 },
+                                  Token{ TokenType::StringLiteral, " attempts login", 3 },
+                                  // Examples section:
+                                  Token{ TokenType::Examples, "Examples", 4 },
+                                  Token{ TokenType::Colon, ":", 4 },
+                                  // For simplicity, assume header is a single token:
+                                  Token{ TokenType::Pipe, "|", 5 },
+                                  Token{ TokenType::StringLiteral, "username", 5 },
+                                  Token{ TokenType::Pipe, "|", 5 },
+                                  Token{ TokenType::EOL, "", 5 },
+                                  // Example rows:
+                                  Token{ TokenType::Pipe, "|", 6 },
+                                  Token{ TokenType::StringLiteral, "user1", 6 },
+                                  Token{ TokenType::Pipe, "|", 6 },
+                                  Token{ TokenType::EOL, "", 6 },
+                                  Token{ TokenType::Pipe, "|", 7 },
+                                  Token{ TokenType::StringLiteral, "user2", 7 },
+                                  Token{ TokenType::Pipe, "|", 7 },
+                                  // End of file:
+                                  Token{ TokenType::EndOfFile, "", 8 } };
 
     Parser parser(tokens);
     std::unique_ptr<FeatureStatement> feature = parser.parseFeature();
@@ -187,10 +184,9 @@ TEST(ParserTest, ParseFeatureWithScenarioOutline)
     auto& step = outline->steps[0];
     EXPECT_EQ(step->keyword, "Given");
 
-    std::vector<Token> expectedText = {
-        Token(TokenType::StringLiteral, "user ", 3),
-        Token(TokenType::Placeholder, "username", 3),
-        Token(TokenType::StringLiteral, " attempts login", 3)};
+    std::vector<Token> expectedText = { Token{ TokenType::StringLiteral, "user ", 3 },
+                                        Token{ TokenType::Placeholder, "username", 3 },
+                                        Token{ TokenType::StringLiteral, " attempts login", 3 } };
 
     EXPECT_EQ(step->text, expectedText);
     for (auto& token : step->text)
@@ -208,11 +204,10 @@ TEST(ParserTest, ParseFeatureWithScenarioOutline)
 TEST(ParserTest, MissingColonAfterFeatureThrows)
 {
     // Tokens: Missing colon between "Feature" and feature name.
-    std::vector<Token> tokens = {
-        Token(TokenType::Feature, "Feature", 1),
-        // Colon is missing here:
-        Token(TokenType::StringLiteral, "MyFeature", 1),
-        Token(TokenType::EndOfFile, "", 1)};
+    std::vector<Token> tokens = { Token{ TokenType::Feature, "Feature", 1 },
+                                  // Colon is missing here:
+                                  Token{ TokenType::StringLiteral, "MyFeature", 1 },
+                                  Token{ TokenType::EndOfFile, "", 1 } };
 
     Parser parser(tokens);
     EXPECT_THROW({ auto feature = parser.parseFeature(); }, std::runtime_error);
@@ -224,11 +219,10 @@ TEST(ParserTest, MissingColonAfterFeatureThrows)
 TEST(ParserTest, InvalidKeywordThrows)
 {
     // Tokens: First token is not "Feature"
-    std::vector<Token> tokens = {
-        Token(TokenType::StringLiteral, "NotAFeature", 1),
-        Token(TokenType::Colon, ":", 1),
-        Token(TokenType::StringLiteral, "Whatever", 1),
-        Token(TokenType::EndOfFile, "", 1)};
+    std::vector<Token> tokens = { Token{ TokenType::StringLiteral, "NotAFeature", 1 },
+                                  Token{ TokenType::Colon, ":", 1 },
+                                  Token{ TokenType::StringLiteral, "Whatever", 1 },
+                                  Token{ TokenType::EndOfFile, "", 1 } };
 
     Parser parser(tokens);
     EXPECT_THROW({ auto feature = parser.parseFeature(); }, std::runtime_error);
