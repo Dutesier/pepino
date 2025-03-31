@@ -16,6 +16,8 @@
 
 #include "BasicTestRunner.h"
 
+#include "Logger.h"
+#include "hooks/HookRegistry.h"
 #include "parsing/Statement.h"
 #include "parsing/Token.h"
 #include "steps/StepRegistry.h"
@@ -27,6 +29,40 @@
 
 namespace pep
 {
+
+namespace
+{
+// Helper function to get the step type from the first word of the step text.
+types::StepType getStepType(const std::string& stepText)
+{
+    auto firstSpace = stepText.find(' ');
+    const std::string type = (firstSpace == std::string::npos) ? stepText : stepText.substr(0, firstSpace);
+    if (type == "Given")
+    {
+        return types::StepType::Given;
+    }
+    else if (type == "When")
+    {
+        return types::StepType::When;
+    }
+    else if (type == "Then")
+    {
+        return types::StepType::Then;
+    }
+    else if (type == "And")
+    {
+        return types::StepType::And;
+    }
+    else if (type == "But")
+    {
+        return types::StepType::But;
+    }
+    else
+    {
+        throw std::runtime_error("Unknown step type: " + type);
+    }
+}
+} // namespace
 
 int BasicTestRunner::runTests(std::unique_ptr<FeatureStatement> feature) const
 {
@@ -55,33 +91,46 @@ int BasicTestRunner::runTests(std::unique_ptr<FeatureStatement> feature) const
 
 void BasicTestRunner::runFeature(const FeatureStatement& feature) const
 {
-    std::cout << "Running Feature: " << feature.name << std::endl;
+    types::FeatureInfo featureInfo{ feature.name, feature.tags };
+    HookRegistry::getInstance().executeBeforeAll(featureInfo);
     // Run each scenario. If a background exists (i.e. feature.background is
     // non-null), pass it by const reference; otherwise, run the scenario
     // without it.
     for (const auto& scenario : feature.scenarios)
     {
+        types::ScenarioInfo scenarioInfo{ scenario->name, scenario->tags };
         if (feature.background)
         {
+            HookRegistry::getInstance().executeBefore(scenarioInfo);
             runScenario(*scenario, *feature.background);
+            HookRegistry::getInstance().executeAfter(scenarioInfo);
         }
         else
         {
+            HookRegistry::getInstance().executeBefore(scenarioInfo);
             runScenario(*scenario);
+            HookRegistry::getInstance().executeAfter(scenarioInfo);
         }
     }
     // Run each scenario outline similarly.
     for (const auto& scenarioOutline : feature.scenarioOutlines)
     {
+        types::ScenarioInfo scenarioInfo{ scenarioOutline->name, scenarioOutline->tags };
         if (feature.background)
         {
+            HookRegistry::getInstance().executeBefore(scenarioInfo);
             runScenarioOutline(*scenarioOutline, *feature.background);
+            HookRegistry::getInstance().executeAfter(scenarioInfo);
         }
         else
         {
+            HookRegistry::getInstance().executeBefore(scenarioInfo);
             runScenarioOutline(*scenarioOutline);
+            HookRegistry::getInstance().executeAfter(scenarioInfo);
         }
     }
+
+    HookRegistry::getInstance().executeAfterAll(featureInfo);
 }
 
 // Run a scenario without a background.
@@ -95,11 +144,9 @@ void BasicTestRunner::runScenario(const ScenarioStatement& scenario) const
 }
 
 // Run a scenario with a background.
-void BasicTestRunner::runScenario(const ScenarioStatement& scenario,
-                                  const BackgroundStatement& background) const
+void BasicTestRunner::runScenario(const ScenarioStatement& scenario, const BackgroundStatement& background) const
 {
-    std::cout << "Running Scenario: " << scenario.name << " with Background"
-              << std::endl;
+    std::cout << "Running Scenario: " << scenario.name << " with Background" << std::endl;
     // First run all background steps.
     for (const auto& step : background.steps)
     {
@@ -110,11 +157,9 @@ void BasicTestRunner::runScenario(const ScenarioStatement& scenario,
 }
 
 // Run a scenario outline without a background.
-void BasicTestRunner::runScenarioOutline(
-    const ScenarioOutlineStatement& scenarioOutline) const
+void BasicTestRunner::runScenarioOutline(const ScenarioOutlineStatement& scenarioOutline) const
 {
-    std::cout << "Running Scenario Outline: " << scenarioOutline.name
-              << std::endl;
+    std::cout << "Running Scenario Outline: " << scenarioOutline.name << std::endl;
     if (!scenarioOutline.examples)
     {
         throw TestFailedException("Scenario Outline has no Examples");
@@ -125,10 +170,8 @@ void BasicTestRunner::runScenarioOutline(
     {
         if (row.size() != headers.size())
         {
-            std::cerr << "Warning: In Scenario Outline '"
-                      << scenarioOutline.name
-                      << "', header count and row size do not match."
-                      << std::endl;
+            std::cerr << "Warning: In Scenario Outline '" << scenarioOutline.name
+                      << "', header count and row size do not match." << std::endl;
             continue;
         }
         std::unordered_map<std::string, std::string> mapping;
@@ -144,9 +187,8 @@ void BasicTestRunner::runScenarioOutline(
         std::cout << std::endl;
         for (const auto& step : scenarioOutline.steps)
         {
-            std::string substituted =
-                substitutePlaceholders(step->text, mapping);
-            runStep(substituted);
+            std::string substituted = substitutePlaceholders(step->text, mapping);
+            runStep(getStepType(step->keyword), substituted);
         }
     }
 }
@@ -174,25 +216,31 @@ void BasicTestRunner::runStep(const StepStatement& step) const
     {
         if (token.type == TokenType::Placeholder)
         {
-            throw TestFailedException("Step contains unbound placeholder: " +
-                                      token.lexeme);
+            throw TestFailedException("Step contains unbound placeholder: " + token.lexeme);
         }
     }
     std::string literal = std::accumulate(
-        std::next(step.text.begin()), step.text.end(), step.text.front().lexeme,
-        [](const std::string& a, const Token& b) {
-            return a + " " + b.lexeme;
-        });
+        std::next(step.text.begin()),
+        step.text.end(),
+        step.text.front().lexeme,
+        [](const std::string& a, const Token& b) { return a + " " + b.lexeme; });
 
+    types::StepInfo stepType{ getStepType(step.keyword), literal };
+    HookRegistry::getInstance().executeBeforeStep(stepType);
     StepRegistry::getInstance().executeStep(literal);
+    HookRegistry::getInstance().executeAfterStep(stepType);
 }
 
 // Run a single step given substituted step text.
-void BasicTestRunner::runStep(const std::string& substitutedStepText) const
+void BasicTestRunner::runStep(const types::StepType& type, const std::string& substitutedStepText) const
 {
-    std::cout << "Running substituted step: " << substitutedStepText
-              << std::endl;
+    std::cout << "Running substituted step: " << substitutedStepText << std::endl;
+
+    types::StepInfo stepInfo{ type, substitutedStepText };
+
+    HookRegistry::getInstance().executeBeforeStep(stepInfo);
     StepRegistry::getInstance().executeStep(substitutedStepText);
+    HookRegistry::getInstance().executeAfterStep(stepInfo);
 }
 
 // Substitute placeholders in the given text.
@@ -203,8 +251,11 @@ std::string BasicTestRunner::substitutePlaceholders(
     const std::unordered_map<std::string, std::string>& mapping) const
 {
     std::string literal = std::accumulate(
-        std::next(text.begin()), text.end(), text.front().lexeme,
-        [&mapping](const std::string& a, const Token& b) {
+        std::next(text.begin()),
+        text.end(),
+        text.front().lexeme,
+        [&mapping](const std::string& a, const Token& b)
+        {
             if (b.type == TokenType::Placeholder)
             {
                 auto it = mapping.find(b.lexeme);
@@ -214,8 +265,7 @@ std::string BasicTestRunner::substitutePlaceholders(
                 }
                 else
                 {
-                    throw TestFailedException("Unbound placeholder: " +
-                                              b.lexeme);
+                    throw TestFailedException("Unbound placeholder: " + b.lexeme);
                 }
             }
             return a + " " + b.lexeme;

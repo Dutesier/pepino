@@ -27,6 +27,7 @@ set(SRC_FILES
     src/parsing/Lexer.cpp
     src/parsing/Parser.cpp
     src/parsing/Token.cpp
+    src/HookRegistry.cpp
     )
 
 # Add the library target
