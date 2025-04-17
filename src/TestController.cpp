@@ -38,8 +38,8 @@ int TestController::executeTest(const std::string& input)
     {
         throw std::runtime_error("Could not open file: " + input);
     }
-    std::string content((std::istreambuf_iterator<char>(file)),
-                        std::istreambuf_iterator<char>());
+
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
     // Tokenize the content
     Lexer lexer(content);

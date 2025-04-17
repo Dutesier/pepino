@@ -60,7 +60,7 @@ add_executable(PepinoTest
 
 
 # Link the test executable with the library and Google Test
-target_link_libraries(PepinoTest PRIVATE Pepino GTest::gtest_main)
+target_link_libraries(PepinoTest PRIVATE Pepino GTest::gtest_main GTest::gmock)
 
 
 

@@ -23,23 +23,28 @@ namespace pep
 #define TOKEN_PASTE(x, y) x##y
 #define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
 
-#define TOKEN_PASTE(x, y) x##y
-#define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
-
-#ifndef STEP
-#define STEP(type, pattern, callback)                                                                                  \
+#define STEP_CTX(ctxType, stepType, pattern, callback)                                                                 \
     namespace                                                                                                          \
     {                                                                                                                  \
-    const bool TOKEN_PASTE2(step_registration_dummy_, __COUNTER__) = []()                                              \
+    const bool TOKEN_PASTE2(_step_reg_, __COUNTER__) = []()                                                            \
     {                                                                                                                  \
-        pep::StepRegistry::getInstance().registerStep(type, pattern, callback);                                        \
+        pep::StepRegistry::getInstance().registerStep<ctxType>(stepType, pattern, callback);                           \
         return true;                                                                                                   \
     }();                                                                                                               \
     }
-#endif
 
-#define GIVEN(pattern, callback) STEP(pep::types::StepType::Given, pattern, callback)
-#define WHEN(pattern, callback) STEP(pep::types::StepType::When, pattern, callback)
-#define THEN(pattern, callback) STEP(pep::types::StepType::Then, pattern, callback)
+/// — the “new” form, when you want to explicitly say which Context to use:
+#define GIVEN_CTX(ctx, pat, cb) STEP_CTX(ctx, pep::types::StepType::Given, pat, cb)
+#define WHEN_CTX(ctx, pat, cb) STEP_CTX(ctx, pep::types::StepType::When, pat, cb)
+#define THEN_CTX(ctx, pat, cb) STEP_CTX(ctx, pep::types::StepType::Then, pat, cb)
+#define AND_CTX(ctx, pat, cb) STEP_CTX(ctx, pep::types::StepType::And, pat, cb)
+#define BUT_CTX(ctx, pat, cb) STEP_CTX(ctx, pep::types::StepType::But, pat, cb)
+
+/// — backwards‐compatible “no‐context” macros all just bind to DefaultContext:
+#define GIVEN(pat, cb) GIVEN_CTX(pep::DefaultContext, pat, cb)
+#define WHEN(pat, cb) WHEN_CTX(pep::DefaultContext, pat, cb)
+#define THEN(pat, cb) THEN_CTX(pep::DefaultContext, pat, cb)
+#define AND(pat, cb) AND_CTX(pep::DefaultContext, pat, cb)
+#define BUT(pat, cb) BUT_CTX(pep::DefaultContext, pat, cb)
 
 } // namespace pep

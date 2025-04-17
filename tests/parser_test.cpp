@@ -59,9 +59,11 @@ TEST(ParserTest, ParseFeatureWithBackground)
     std::vector<Token> tokens = { Token{ TokenType::Feature, "Feature", 1 },
                                   Token{ TokenType::Colon, ":", 1 },
                                   Token{ TokenType::StringLiteral, "FeatureWithBackground", 1 },
+                                  Token{ TokenType::EOL, "", 1 },
                                   // Background section
                                   Token{ TokenType::Background, "Background", 2 },
                                   Token{ TokenType::Colon, ":", 2 },
+                                  Token{ TokenType::EOL, "", 2 },
                                   // One step in background:
                                   Token{ TokenType::Given, "Given", 2 },
                                   Token{ TokenType::StringLiteral, "a user exists", 2 },
@@ -96,11 +98,14 @@ TEST(ParserTest, ParseFeatureWithScenario)
                                   Token{ TokenType::Feature, "Feature", 1 },
                                   Token{ TokenType::Colon, ":", 1 },
                                   Token{ TokenType::StringLiteral, "FeatureWithScenario", 1 },
+                                  Token{ TokenType::EOL, "", 1 },
                                   // Scenario-level (preceded by a tag):
                                   Token{ TokenType::Tag, "@scenario", 2 },
                                   Token{ TokenType::Scenario, "Scenario", 2 },
                                   Token{ TokenType::Colon, ":", 2 },
                                   Token{ TokenType::StringLiteral, "SuccessfulScenario", 2 },
+                                  Token{ TokenType::EOL, "", 2 },
+                                  Token{ TokenType::EOL, "", 3 },
                                   // A step in the scenario:
                                   Token{ TokenType::Given, "Given", 3 },
                                   Token{ TokenType::StringLiteral, "user is logged in", 3 },
@@ -144,10 +149,12 @@ TEST(ParserTest, ParseFeatureWithScenarioOutline)
     std::vector<Token> tokens = { Token{ TokenType::Feature, "Feature", 1 },
                                   Token{ TokenType::Colon, ":", 1 },
                                   Token{ TokenType::StringLiteral, "FeatureWithOutline", 1 },
+                                  Token{ TokenType::EOL, "", 1 },
                                   // Scenario Outline section:
                                   Token{ TokenType::ScenarioOutline, "ScenarioOutline", 2 },
                                   Token{ TokenType::Colon, ":", 2 },
                                   Token{ TokenType::StringLiteral, "OutlineScenario", 2 },
+                                  Token{ TokenType::EOL, "", 2 },
                                   // Step in scenario outline:
                                   Token{ TokenType::Given, "Given", 3 },
                                   Token{ TokenType::StringLiteral, "user ", 3 },
@@ -155,9 +162,11 @@ TEST(ParserTest, ParseFeatureWithScenarioOutline)
                                   Token{ TokenType::StringLiteral, "username", 3 },
                                   Token{ TokenType::RightAngle, ">", 3 },
                                   Token{ TokenType::StringLiteral, " attempts login", 3 },
+                                  Token{ TokenType::EOL, "", 3 },
                                   // Examples section:
                                   Token{ TokenType::Examples, "Examples", 4 },
                                   Token{ TokenType::Colon, ":", 4 },
+                                  Token{ TokenType::EOL, "", 4 },
                                   // For simplicity, assume header is a single token:
                                   Token{ TokenType::Pipe, "|", 5 },
                                   Token{ TokenType::StringLiteral, "username", 5 },
@@ -196,6 +205,51 @@ TEST(ParserTest, ParseFeatureWithScenarioOutline)
     ASSERT_NE(outline->examples, nullptr);
     ASSERT_EQ(outline->examples->headers.size(), 1);
     EXPECT_EQ(outline->examples->headers[0], "username");
+}
+
+// ----------------------------------------------------
+// Feature with some description text bellow the name
+// ----------------------------------------------------
+TEST(ParserTest, ParseFeatureWithDescription)
+{
+    // Tokens:
+    //   Feature : FeatureWithDescription
+    //      This is a description of the feature.
+    //      This is the second line of the description.
+    //      Scenario: A scenario description
+    //      Given a step in the scenario
+    //   EndOfFile
+    std::vector<Token> tokens = { Token{ TokenType::Feature, "Feature", 1 },
+                                  Token{ TokenType::Colon, ":", 1 },
+                                  Token{ TokenType::StringLiteral, "FeatureWithDescription", 1 },
+                                  Token{ TokenType::EOL, "", 1 },
+                                  // Description lines:
+                                  Token{ TokenType::StringLiteral, "This is a description of the feature.", 2 },
+                                  Token{ TokenType::EOL, "", 2 },
+                                  Token{ TokenType::StringLiteral, "This is the second line of the description.", 3 },
+                                  Token{ TokenType::EOL, "", 3 },
+                                  // Scenario section:
+                                  Token{ TokenType::Scenario, "Scenario", 4 },
+                                  Token{ TokenType::Colon, ":", 4 },
+                                  Token{ TokenType::StringLiteral, "A scenario description", 4 },
+                                  Token{ TokenType::EOL, "", 4 },
+                                  // Step in scenario:
+                                  Token{ TokenType::Given, "Given", 5 },
+                                  Token{ TokenType::StringLiteral, "a step in the scenario", 5 },
+                                  // End of file:
+                                  Token{ TokenType::EndOfFile, "", 6 } };
+    Parser parser(tokens);
+    std::unique_ptr<FeatureStatement> feature = parser.parseFeature();
+    ASSERT_NE(feature, nullptr);
+    EXPECT_EQ(feature->name, "FeatureWithDescription");
+    ASSERT_EQ(feature->scenarios.size(), 1);
+    auto& scenario = feature->scenarios[0];
+    EXPECT_EQ(scenario->name, "A scenario description");
+    ASSERT_EQ(scenario->steps.size(), 1);
+    auto& step = scenario->steps[0];
+    EXPECT_EQ(step->keyword, "Given");
+    std::vector<Token> expectedText = { Token{ TokenType::StringLiteral, "a step in the scenario", 5 } };
+    EXPECT_EQ(step->text, expectedText);
 }
 
 // ----------------------------------------------------

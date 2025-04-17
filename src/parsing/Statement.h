@@ -34,7 +34,7 @@ public:
 class StepStatement : public Statement
 {
 public:
-    std::string keyword; // e.g., "Given", "When", "Then"
+    std::string keyword;                                    // e.g., "Given", "When", "Then"
     std::vector<Token> text;                                // The step text; may contain placeholders like "<var>"
     std::unordered_map<std::string, std::string> variables; // Placeholder values
 };

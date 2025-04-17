@@ -48,18 +48,24 @@ class PepinoTest : public testing::Test
 GIVEN(
     "^a user exists with username \"(\\w+)\" and password "
     "\"(\\w+)\"$",
-    [](std::string username, std::string password)
+    [](pep::DefaultContext&, std::string username, std::string password)
     { std::cout << "User exists with username: " << username << " and password: " << password << std::endl; });
-GIVEN("the user is on the login page", []() { std::cout << "User is on the login page." << std::endl; });
-WHEN("the user enters valid credentials", []() { std::cout << "User enters valid credentials." << std::endl; });
+GIVEN(
+    "the user is on the login page",
+    [](pep::DefaultContext&) { std::cout << "User is on the login page." << std::endl; });
+WHEN(
+    "the user enters valid credentials",
+    [](pep::DefaultContext&) { std::cout << "User enters valid credentials." << std::endl; });
 THEN(
     "they should be redirected to the dashboard",
-    []() { std::cout << "User is redirected to the dashboard." << std::endl; });
+    [](pep::DefaultContext&) { std::cout << "User is redirected to the dashboard." << std::endl; });
 WHEN(
     "the user enters (\\w+) and (\\w+)",
-    [](std::string username, std::string password)
+    [](pep::DefaultContext&, std::string username, std::string password)
     { std::cout << "User enters username: " << username << " and password: " << password << std::endl; });
-THEN("they should see an error message", []() { std::cout << "User sees an error message." << std::endl; });
+THEN(
+    "they should see an error message",
+    [](pep::DefaultContext&) { std::cout << "User sees an error message." << std::endl; });
 
 BEFORE_ALL()
 {

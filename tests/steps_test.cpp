@@ -14,36 +14,66 @@
  *
  *******************************************************************************/
 
+#include "context.h"
 #include "pepino.h"
 #include "steps/steps.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+using namespace testing;
 
 class PepinoStepsTest : public testing::Test
 {
 };
 
+class MyContext : public pep::Context<MyContext>
+{
+public:
+    std::string name{};
+    int number{};
+    testing::MockFunction<void()> mockCb;
+};
+
 TEST_F(PepinoStepsTest, pepinoRunsSingleStep)
 {
-    auto ret = pep::debug_runStep("a number 42");
+    auto& ctx = MyContext::getInstance();
+    EXPECT_CALL(ctx.mockCb, Call()).Times(1);
+    auto ret = pep::debug_runStep("tests/data/one_step.feature");
     EXPECT_EQ(ret, 0);
+    Mock::VerifyAndClearExpectations(&ctx.mockCb); // Needed for reporting in the actual test
 }
 
 TEST_F(PepinoStepsTest, typeAssertion)
 {
-    auto ret = pep::debug_runStep("a name 42");
-    auto ret2 = pep::debug_runStep("a name against");
-    EXPECT_EQ(ret, 0);
-    EXPECT_EQ(ret2, 0);
+    pep::debug_runStep("tests/data/type_assertion.feature");
+    EXPECT_EQ(MyContext::getInstance().name, "against");
+    EXPECT_EQ(MyContext::getInstance().number, 42);
 }
 
-GIVEN("^a number (\\d+)$",
-      [](int x) { std::cout << "Received int: " << x << std::endl; });
+GIVEN_CTX(
+    MyContext,
+    "^a number (\\d+)$",
+    [](MyContext& ctx, int x)
+    {
+        std::cout << "Received int: " << x << std::endl;
+        ctx.mockCb.AsStdFunction()();
+    });
 
-GIVEN("^a name (\\w+)$", [](std::string name) {
-    std::cout << "Received name: " << name << std::endl;
-});
+GIVEN_CTX(
+    MyContext,
+    "^a name (\\w+)$",
+    [](MyContext& ctx, std::string name)
+    {
+        std::cout << "Received name: " << name << std::endl;
+        ctx.name = name;
+    });
 
-GIVEN("^a name (\\d+)$", [](int name) {
-    std::cout << "Received name w/ number: " << name << std::endl;
-});
+GIVEN_CTX(
+    MyContext,
+    "^a name (\\d+)$",
+    [](MyContext& ctx, int name)
+    {
+        std::cout << "Received name w/ number: " << name << std::endl;
+        ctx.number = name;
+    });

@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "TypeConverters.h"
+#include "context.h"
 #include "types/types.h"
 
 namespace pep
@@ -32,6 +33,7 @@ namespace pep
 
 template <typename T> struct function_traits;
 
+// Extract operator() signature for lambdas/functors
 template <typename ClassType, typename ReturnType, typename... Args>
 struct function_traits<ReturnType (ClassType::*)(Args...) const>
 {
@@ -43,14 +45,12 @@ class StepRegistry
 private:
     struct StepDefinition
     {
-        types::StepType type; // The type of step (Given, When, Then, etc.)
+        types::StepType type;
         std::regex pattern;
-        std::string patternStr; // Store the original regex string.
-        int specificity;        // A computed metric; higher means more specific.
-        // The callback wrapped to accept a vector of capture groups.
+        std::string patternStr;
+        int specificity;
         std::function<void(const std::vector<std::string>&)> func;
     };
-
     using StepDefinitionPtr = std::shared_ptr<StepDefinition>;
 
 public:
@@ -60,121 +60,115 @@ public:
         return instance;
     }
 
-    // Registration: compute specificity and store the original pattern.
-    template <typename Callback>
+    /// Register a step whose callback takes (DerivedContext&, Args...).
+    /// The wrapper will fetch DerivedContext::getInstance() internally.
+    template <typename DerivedContext, typename Callback>
     void registerStep(types::StepType type, const std::string& patternStr, Callback callback)
     {
         std::regex pattern(patternStr);
         int spec = computeSpecificity(patternStr);
-        auto wrapper = [callback](const std::vector<std::string>& args) { callWithArgs(callback, args); };
+
+        // Wrap user callback: grab the singleton and dispatch
+        auto wrapper = [callback](const std::vector<std::string>& args)
+        {
+            auto& ctx = DerivedContext::getInstance();
+            callWithArgs(callback, ctx, args);
+        };
 
         auto stepDef = std::make_shared<StepDefinition>();
-        stepDef->pattern = pattern;
+        stepDef->type = type;
+        stepDef->pattern = std::move(pattern);
         stepDef->patternStr = patternStr;
         stepDef->specificity = spec;
-        stepDef->func = wrapper;
-        stepDef->type = type;
-        steps.push_back(stepDef);
+        stepDef->func = std::move(wrapper);
+
+        steps.push_back(std::move(stepDef));
     }
 
-    // Execute a step: choose among all matching candidates the one with highest
-    // specificity.
+    /// Match `stepText` against all registered patterns, pick the most
+    /// specific, extract captures, and invoke its wrapper.
     void executeStep(const std::string& stepText) const
     {
         std::vector<StepDefinitionPtr> candidates;
-        for (const auto& stepDef : steps)
+        for (const auto& sd : steps)
         {
-            std::smatch match;
-            if (std::regex_match(stepText, match, stepDef->pattern))
-            {
-                candidates.push_back(stepDef);
-            }
+            std::smatch m;
+            if (std::regex_match(stepText, m, sd->pattern))
+                candidates.push_back(sd);
         }
         if (candidates.empty())
         {
             throw std::runtime_error("No matching step found for: (START)" + stepText + "(END)");
         }
-        // Choose candidate with highest specificity.
-        StepDefinitionPtr bestCandidate = candidates.front();
-        for (const auto& candidate : candidates)
-        {
-            if (candidate->specificity > bestCandidate->specificity)
-            {
-                bestCandidate = candidate;
-            }
-        }
-        // For debugging: print the chosen regex literal.
-        std::cout << "Executing step with regex: " << bestCandidate->patternStr << std::endl;
 
-        // Extract capture groups.
+        // Choose highest specificity
+        auto best = candidates.front();
+        for (auto& cand : candidates)
+        {
+            if (cand->specificity > best->specificity)
+                best = cand;
+        }
+
+        std::cout << "Executing step with regex: " << best->patternStr << std::endl;
+
         std::smatch match;
-        if (std::regex_match(stepText, match, bestCandidate->pattern))
+        if (!std::regex_match(stepText, match, best->pattern))
         {
-            std::vector<std::string> captures;
-            for (size_t i = 1; i < match.size(); i++)
-            {
-                captures.push_back(match[i].str());
-            }
-            bestCandidate->func(captures);
+            throw std::runtime_error("Internal error: best candidate failed to match");
         }
-        else
-        {
-            throw std::runtime_error("Unexpected failure: candidate best match did not match");
-        }
+
+        std::vector<std::string> captures;
+        for (size_t i = 1; i < match.size(); ++i)
+            captures.push_back(match[i].str());
+
+        best->func(captures);
     }
 
 private:
     std::vector<StepDefinitionPtr> steps;
     StepRegistry() = default;
 
-    int computeSpecificity(const std::string& patternStr) const
+    // Heuristic: count literals and tokens to rank specificity
+    int computeSpecificity(const std::string& pat) const
     {
         int score = 0;
         size_t pos = 0;
-        while (pos < patternStr.size())
+        while (pos < pat.size())
         {
-            // Check for digit tokens.
-            if (patternStr.compare(pos, 2, "\\d") == 0)
+            if (pat.compare(pos, 2, "\\d") == 0)
             {
-                score += 2; // moderate weight for digit placeholders
+                score += 2;
                 pos += 2;
             }
-            // Check for word tokens.
-            else if (patternStr.compare(pos, 2, "\\w") == 0)
+            else if (pat.compare(pos, 2, "\\w") == 0)
             {
-                score += 1; // lower weight for generic word characters
+                score += 1;
                 pos += 2;
             }
-            // Check for anchors, which can improve specificity.
-            else if (patternStr[pos] == '^' || patternStr[pos] == '$')
+            else if (pat[pos] == '^' || pat[pos] == '$')
             {
                 score += 3;
                 pos += 1;
             }
-            // Check for a character class.
-            else if (patternStr[pos] == '[')
+            else if (pat[pos] == '[')
             {
-                size_t endBracket = patternStr.find(']', pos);
-                if (endBracket != std::string::npos)
+                auto end = pat.find(']', pos);
+                if (end != std::string::npos)
                 {
-                    // Weight is proportional to the size of the character
-                    // class.
-                    int length = static_cast<int>(endBracket - pos - 1);
-                    score += (length > 0 ? length : 1);
-                    pos = endBracket + 1;
+                    int len = static_cast<int>(end - pos - 1);
+                    score += (len > 0 ? len : 1);
+                    pos = end + 1;
                 }
                 else
                 {
-                    pos++; // if no closing bracket, just advance
+                    pos++;
                 }
             }
-            // Count literal alphanumeric characters as highly specific.
-            else if (std::isalnum(patternStr[pos]))
+            else if (std::isalnum(static_cast<unsigned char>(pat[pos])))
             {
                 score += 4;
                 pos++;
             }
-            // Otherwise, skip meta characters or punctuation.
             else
             {
                 pos++;
@@ -183,31 +177,34 @@ private:
         return score;
     }
 
-    // Helper to call the callback with converted arguments.
-    template <typename Callback, typename... Args, std::size_t... I>
-    static void callHelper(Callback callback, const std::vector<std::string>& args, std::index_sequence<I...>)
-    {
-        callback(convert<Args>(args[I])...);
-    }
-
-    // Extract the callback's argument types and invoke it.
-    template <typename Callback> static void callWithArgs(Callback callback, const std::vector<std::string>& args)
+    // Unpack and convert args, dropping the first tuple element (the context)
+    template <typename Callback, typename DerivedContext>
+    static void callWithArgs(Callback callback, DerivedContext& ctx, const std::vector<std::string>& args)
     {
         using Functor = std::remove_reference_t<Callback>;
         using Traits = function_traits<decltype(&Functor::operator())>;
-        constexpr std::size_t N = std::tuple_size<typename Traits::args_tuple>::value;
-        if (args.size() != N)
+        using Tuple = typename Traits::args_tuple;
+        constexpr size_t N = std::tuple_size<Tuple>::value;
+        if (args.size() != N - 1)
+        {
             throw std::runtime_error("Argument count mismatch in step callback");
-        callHelperImpl(callback, args, std::make_index_sequence<N>{});
+        }
+        callHelperImpl<Callback, DerivedContext>(callback, ctx, args, std::make_index_sequence<N - 1>{});
     }
 
-    // Unpack arguments and call the callback.
-    template <typename Callback, std::size_t... I>
-    static void callHelperImpl(Callback callback, const std::vector<std::string>& args, std::index_sequence<I...>)
+    // IndexSequence to shift each capture into the correct argument slot
+    template <typename Callback, typename DerivedContext, size_t... I>
+    static void callHelperImpl(
+        Callback callback,
+        DerivedContext& ctx,
+        const std::vector<std::string>& args,
+        std::index_sequence<I...>)
     {
         using Functor = std::remove_reference_t<Callback>;
         using Traits = function_traits<decltype(&Functor::operator())>;
-        callback(convert<typename std::tuple_element<I, typename Traits::args_tuple>::type>(args[I])...);
+        using Tuple = typename Traits::args_tuple;
+
+        callback(ctx, convert<typename std::tuple_element<I + 1, Tuple>::type>(args[I])...);
     }
 };
 
