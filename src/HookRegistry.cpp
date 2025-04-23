@@ -21,7 +21,8 @@
 namespace pep
 {
 
-void HookRegistry::registerAfterAll(std::function<void(const types::FeatureInfo&)>&& hook)
+void HookRegistry::registerAfterAll(
+    std::function<void(const types::FeatureInfo&)>&& hook)
 {
     if (!hook)
     {
@@ -45,7 +46,8 @@ void HookRegistry::executeAfterAll(const types::FeatureInfo& feature)
     }
 }
 
-void HookRegistry::registerBeforeAll(std::function<void(const types::FeatureInfo&)>&& hook)
+void HookRegistry::registerBeforeAll(
+    std::function<void(const types::FeatureInfo&)>&& hook)
 {
     if (!hook)
     {
@@ -69,7 +71,8 @@ void HookRegistry::executeBeforeAll(const types::FeatureInfo& feature)
     }
 }
 
-void HookRegistry::registerBefore(std::function<void(const types::ScenarioInfo&)>&& hook)
+void HookRegistry::registerBefore(
+    std::function<void(const types::ScenarioInfo&)>&& hook)
 {
     if (!hook)
     {
@@ -93,7 +96,8 @@ void HookRegistry::executeBefore(const types::ScenarioInfo& scenario)
     }
 }
 
-void HookRegistry::registerAfter(std::function<void(const types::ScenarioInfo&)>&& hook)
+void HookRegistry::registerAfter(
+    std::function<void(const types::ScenarioInfo&)>&& hook)
 {
     if (!hook)
     {
@@ -117,7 +121,8 @@ void HookRegistry::executeAfter(const types::ScenarioInfo& scenario)
     }
 }
 
-void HookRegistry::registerBeforeStep(std::function<void(const types::StepInfo&)>&& hook)
+void HookRegistry::registerBeforeStep(
+    std::function<void(const types::StepInfo&)>&& hook)
 {
     if (!hook)
     {
@@ -141,7 +146,8 @@ void HookRegistry::executeBeforeStep(const types::StepInfo& step)
     }
 }
 
-void HookRegistry::registerAfterStep(std::function<void(const types::StepInfo&)>&& hook)
+void HookRegistry::registerAfterStep(
+    std::function<void(const types::StepInfo&)>&& hook)
 {
     if (!hook)
     {

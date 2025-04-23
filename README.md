@@ -49,43 +49,26 @@ Feature: Login
     Then login should be successful
 ```
 
-### 2. Define a Context
+### 2. Register Step Handlers
 
 ```cpp
-// MyContext.h
-#pragma once
-#include "pepino/ContextRegistry.h"
+#include "pepino/steps/steps.h"
 
-struct MyContext : pep::BaseContext {
-  std::string username;
-  int attempts = 0;
-};
+GIVEN("^a user exists with username \"(\\w+)\" and password \"(\\w+)\"$",
+      [](pep::DefaultContext&, std::string username, std::string password) {
+          std::cout << "Created user: " << username << "/" << password << std::endl;
+      });
 
-template <>
-inline std::unique_ptr<pep::BaseContext> pep::ContextRegistry::makeContext() {
-  return std::make_unique<MyContext>();
-}
-```
-
-### 3. Register Step Handlers
-
-```cpp
-#include "pepino/StepMacros.h"
-
-GIVEN(R"(^a user "([^"]+)" with password "([^"]+)"$)", [](MyContext& ctx, const auto& caps) {
-  ctx.username = caps[0];
+WHEN("the user enters valid credentials", [](pep::DefaultContext&) {
+    std::cout << "Entered valid credentials\n";
 });
 
-WHEN(R"(^they login with "([^"]+)" and "([^"]+)"$)", [](MyContext& ctx, const auto& caps) {
-  ctx.attempts++;
-});
-
-THEN(R"(^login should be successful$)", [](MyContext& ctx, const auto&) {
-  if (ctx.username != "alice") throw std::runtime_error("Login failed");
+THEN("they should be redirected to the dashboard", [](pep::DefaultContext&) {
+    std::cout << "Redirected to dashboard\n";
 });
 ```
 
-### 4. Add Optional Hooks
+### 3. Add Optional Hooks
 
 ```cpp
 #include "pepino/HookMacros.h"
@@ -101,7 +84,7 @@ AFTER_STEP() {
 }
 ```
 
-### 5. Run a Feature
+### 4. Run a Feature
 
 ```cpp
 #include "pepino/Lexer.h"
@@ -109,11 +92,38 @@ AFTER_STEP() {
 #include "pepino/TestRunner.h"
 
 int main() {
-  std::string featureText = /* load from .feature file */;
-  auto tokens  = pep::Lexer(featureText).tokenize();
-  auto feature = pep::Parser(tokens).parseFeature();
-  pep::TestRunner().runFeature(*feature);
+  return pep::run("pathToFeatureFile.feature");
 }
+```
+
+### Alternatively, you can setup your own context
+For stateful steps and validation, define a custom context class.
+
+```cpp
+class MyContext : public pep::DefaultContext<MyContext> {
+public:
+    std::string name{};
+    int number{};
+    testing::MockFunction<void()> mockCb;
+};
+
+// Step callbacks use MyContext directly:
+GIVEN_CTX(MyContext, "^a number (\\d+)$", [](MyContext& ctx, int x) {
+    std::cout << "Got number: " << x << std::endl;
+    ctx.number = x;
+    ctx.mockCb.AsStdFunction()(); // for test verification
+});
+
+GIVEN_CTX(MyContext, "^a name (\\w+)$", [](MyContext& ctx, std::string name) {
+    ctx.name = std::move(name);
+    std::cout << "Got name: " << ctx.name << std::endl;
+});
+
+THEN_CTX(MyContext, "^the name should be (\\w+)$", [](MyContext& ctx, std::string expected) {
+    if (ctx.name != expected) {
+        throw std::runtime_error("Name mismatch!");
+    }
+});
 ```
 
 ---
@@ -141,21 +151,6 @@ All of this is **delayed execution**: steps are not run when declared—they’r
 
 ---
 
-## ✅ Example
-
-```cpp
-GIVEN(R"(^something happened$)", [](MyContext& ctx, auto&) {
-  ctx.attempts++;
-});
-
-THEN(R"(^the count should be (\d+)$)", [](MyContext& ctx, const auto& caps) {
-  int expected = std::stoi(caps[0]);
-  if (ctx.attempts != expected)
-    throw std::runtime_error("Count mismatch");
-});
-```
-
----
 
 ## 🛠 Contributing
 
