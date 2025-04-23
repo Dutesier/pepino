@@ -12,29 +12,37 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
+ *******************************************************************************/
 
 #pragma once
-
-#include "BaseExpression.h"
-#include "Object.h"
-
-#include <iostream>
 
 namespace pep
 {
 
-class AstPrinter : public ExpressionVisitor
+template <typename Derived> class Context
 {
 public:
-    void print(const Expression& expr)
+    /// Returns the one and only instance of Derived.
+    static Derived& getInstance()
     {
-        expr.accept(*this);
-        std::cout << std::endl;
+        static Derived instance;
+        return instance;
     }
 
-    Object visit(const LiteralExpression& /*expr*/) override { return NullLiteral{}; }
-    Object visit(const PlaceholderExpression& /*expr*/) override { return NullLiteral{}; }
+    // Disable copy & move — there is only one instance!
+    Context(const Context&) = delete;
+    Context& operator=(const Context&) = delete;
+    Context(Context&&) = delete;
+    Context& operator=(Context&&) = delete;
+
+protected:
+    // Construction only allowed by Derived
+    Context() = default;
+    ~Context() = default;
+};
+
+class DefaultContext : public Context<DefaultContext>
+{
 };
 
 } // namespace pep

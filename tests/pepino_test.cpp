@@ -12,9 +12,11 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
+ *******************************************************************************/
 
+#include "hooks/hooks.h"
 #include "pepino.h"
+#include "steps/steps.h"
 
 #include <gtest/gtest.h>
 
@@ -22,7 +24,56 @@ class PepinoTest : public testing::Test
 {
 };
 
-TEST_F(PepinoTest, pepinoCompiles)
+// @fake_backend
+// Feature: Login functionality
+
+//   Background:
+//     Given a user exists with username "user" and password "pass"
+
+//   Scenario: Successful login
+//     Given the user is on the login page
+//     When the user enters valid credentials
+//     Then they should be redirected to the dashboard
+
+//   Scenario Outline: Unsuccessful login attempts
+//     Given the user is on the login page
+//     When the user enters <username> and <password>
+//     Then they should see an error message
+
+//     Examples:
+//       | username | password |
+//       | user     | wrongpass |
+//       | unknown  | pass      |
+
+GIVEN(
+    "^a user exists with username \"(\\w+)\" and password "
+    "\"(\\w+)\"$",
+    [](pep::DefaultContext&, std::string username, std::string password)
+    { std::cout << "User exists with username: " << username << " and password: " << password << std::endl; });
+GIVEN(
+    "the user is on the login page",
+    [](pep::DefaultContext&) { std::cout << "User is on the login page." << std::endl; });
+WHEN(
+    "the user enters valid credentials",
+    [](pep::DefaultContext&) { std::cout << "User enters valid credentials." << std::endl; });
+THEN(
+    "they should be redirected to the dashboard",
+    [](pep::DefaultContext&) { std::cout << "User is redirected to the dashboard." << std::endl; });
+WHEN(
+    "the user enters (\\w+) and (\\w+)",
+    [](pep::DefaultContext&, std::string username, std::string password)
+    { std::cout << "User enters username: " << username << " and password: " << password << std::endl; });
+THEN(
+    "they should see an error message",
+    [](pep::DefaultContext&) { std::cout << "User sees an error message." << std::endl; });
+
+BEFORE_ALL()
 {
-    pep::run();
+    std::cout << "Before all tests. Feature:" << info.name << std::endl;
+}
+
+TEST_F(PepinoTest, pepinoRuns)
+{
+    auto ret = pep::run("tests/data/normal_pepino.feature");
+    EXPECT_EQ(ret, 0);
 }

@@ -20,15 +20,14 @@ add_compile_options(-Wall -Werror -Wextra)
 # Define source files
 set(SRC_FILES 
     src/pepino.cpp
-    src/Interpreter.cpp
     src/Logger.cpp
-    src/Lexer.cpp
-    src/Parser.cpp
-    src/Token.cpp
-    src/Object.cpp
-    src/StepRegistry.cpp
-    # src/Environment.cpp
-    # src/Function.cpp
+    src/BasicTestRunner.cpp
+    src/Catch2TestRunner.cpp
+    src/TestController.cpp
+    src/parsing/Lexer.cpp
+    src/parsing/Parser.cpp
+    src/parsing/Token.cpp
+    src/HookRegistry.cpp
     )
 
 # Add the library target
@@ -42,22 +41,28 @@ target_include_directories(Pepino PUBLIC include)
 # Add Google Test
 find_package(GTest)
 
-# Enable testing
-enable_testing()
+# Add Catch2
+find_package(Catch2 3 REQUIRED)
+
+
+# Link the Catch2 test executable with the library and Catch2
+target_link_libraries(Pepino PRIVATE Catch2::Catch2)
+
 
 # Add the test executable
 add_executable(PepinoTest 
-    # tests/AstPrinter_test.cpp
     tests/pepino_test.cpp
-    # tests/Interpreter_test.cpp
-    tests/Lexer_test.cpp
-    # tests/Parser_test.cpp
-    # tests/Object_test.cpp
+    tests/step_implementations.cpp
+    tests/steps_test.cpp
+    tests/lexer_test.cpp
+    tests/parser_test.cpp
     )
 
 
 # Link the test executable with the library and Google Test
-target_link_libraries(PepinoTest PRIVATE Pepino GTest::gtest_main)
+target_link_libraries(PepinoTest PRIVATE Pepino GTest::gtest_main GTest::gmock)
+
+
 
 # Add tests
 include(GoogleTest)

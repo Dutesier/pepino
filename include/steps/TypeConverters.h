@@ -13,24 +13,33 @@
  * Author:   Dutesier
  *
  *******************************************************************************/
+#pragma once
 
-#include "pepino.h"
-#include "BasicTestRunner.h"
-#include "TestController.h"
+#include <stdexcept>
+#include <string>
 
 namespace pep
 {
 
-int debug_runStep(const std::string& pattern)
+// Primary template declaration (no definition)
+template <typename T> T convert(const std::string& str);
+
+// Specialization for int
+template <> inline int convert<int>(const std::string& str)
 {
-    TestController interpreter(std::make_unique<BasicTestRunner>());
-    return interpreter.executeTest(pattern);
+    return std::stoi(str);
 }
 
-int run(const std::string& filepath)
+// Specialization for double
+template <> inline double convert<double>(const std::string& str)
 {
-    TestController interpreter(std::make_unique<BasicTestRunner>());
-    return interpreter.executeTest(filepath);
+    return std::stod(str);
+}
+
+// Specialization for std::string (the identity function)
+template <> inline std::string convert<std::string>(const std::string& str)
+{
+    return str;
 }
 
 } // namespace pep

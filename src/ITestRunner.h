@@ -13,24 +13,22 @@
  * Author:   Dutesier
  *
  *******************************************************************************/
+#pragma once
 
-#include "pepino.h"
-#include "BasicTestRunner.h"
-#include "TestController.h"
+#include "parsing/Statement.h"
+#include <memory>
 
 namespace pep
 {
 
-int debug_runStep(const std::string& pattern)
+// ITestRunner declares a simple interface for running tests by name.
+// This abstraction allows you to change the underlying test framework without
+// affecting the rest of the code (Dependency Inversion Principle).
+class ITestRunner
 {
-    TestController interpreter(std::make_unique<BasicTestRunner>());
-    return interpreter.executeTest(pattern);
-}
-
-int run(const std::string& filepath)
-{
-    TestController interpreter(std::make_unique<BasicTestRunner>());
-    return interpreter.executeTest(filepath);
-}
+public:
+    virtual ~ITestRunner() = default;
+    virtual int runTests(std::unique_ptr<FeatureStatement> feature) const = 0;
+};
 
 } // namespace pep

@@ -12,25 +12,40 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
-
+ *******************************************************************************/
 #pragma once
 
-#include "BaseStatement.h"
-#include "Environment.h"
-#include "Object.h"
+#include <string>
+#include <vector>
 
-namespace pep
+namespace pep::types
 {
 
-class Function : public Callable
+enum class StepType
 {
-public:
-    Function(const FunctionStatement& declaration, std::shared_ptr<Environment> closure);
-
-private:
-    const FunctionStatement& declaration;
-    std::shared_ptr<Environment> closure;
+    Given,
+    When,
+    Then,
+    And,
+    But
 };
 
-} // namespace pep
+struct StepInfo
+{
+    StepType type;
+    std::string name;
+};
+
+struct FeatureInfo
+{
+    std::string name;
+    std::vector<std::string> tags;
+};
+
+struct ScenarioInfo
+{
+    std::string name;
+    std::vector<std::string> tags;
+};
+
+} // namespace pep::types

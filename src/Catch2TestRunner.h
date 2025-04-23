@@ -12,16 +12,22 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
+ *******************************************************************************/
+#pragma once
 
-#include "../src/Object.h"
+#include "ITestRunner.h"
+#include "parsing/Statement.h"
+#include <memory>
 
-#include <gtest/gtest.h>
-
-using namespace pep;
-
-TEST(testObject, compiles)
+namespace pep
 {
-    Object str = std::string{"Hello"};
-    print(str);
-}
+
+// Catch2TestRunner is a concrete implementation of ITestRunner using Catch2.
+// It sets up a Catch::Session and passes the test filter as a command-line argument.
+class Catch2TestRunner : public ITestRunner
+{
+public:
+    int runTests(std::unique_ptr<FeatureStatement> feature) const override;
+};
+
+} // namespace pep

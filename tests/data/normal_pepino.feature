@@ -1,3 +1,4 @@
+@fake_backend
 Feature: Login functionality
 
   Background:

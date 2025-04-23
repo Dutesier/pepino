@@ -12,47 +12,30 @@
  *
  * Author:   Dutesier
  *
- ******************************************************************************/
-
+ *******************************************************************************/
 #pragma once
 
 #include "Token.h"
-
-#include <string_view>
+#include <string>
 #include <vector>
 
 namespace pep
 {
-
 class Lexer
 {
 public:
-    Lexer(std::string_view source);
-
+    explicit Lexer(const std::string& source);
     std::vector<Token> tokenize();
 
 private:
-    Token getNextToken();
+    std::string m_source;
+    size_t m_current = 0;
+    int m_line = 1;
+
+    char peek() const;
     char advance();
-    bool match(char next);
-    char peek();     // Lookahead
-    char peekNext(); // Lookahead of 2
-
-    Token getStringToken();
-    Token getNumberToken();
-    Token getIdentifierToken();
-
-    Token rerun();
-
-    void advanceUntilEndOfLine();
-    void advanceUntilEndOfComment();
-
-    bool isAtEnd();
-    std::string_view m_source;
-
-    unsigned int m_start = 0;   // Start of current token being parsed
-    unsigned int m_current = 0; // Character being currently considered
-    unsigned int m_line = 1;
+    bool isAtEnd() const;
+    void addToken(TokenType type, const std::string& lexeme, std::vector<Token>& tokens);
 };
 
 } // namespace pep

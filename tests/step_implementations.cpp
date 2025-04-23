@@ -14,23 +14,9 @@
  *
  *******************************************************************************/
 
-#include "pepino.h"
-#include "BasicTestRunner.h"
-#include "TestController.h"
+#include <catch2/catch_test_macros.hpp>
 
-namespace pep
+TEST_CASE("hello", "[example]")
 {
-
-int debug_runStep(const std::string& pattern)
-{
-    TestController interpreter(std::make_unique<BasicTestRunner>());
-    return interpreter.executeTest(pattern);
+    REQUIRE(1 + 1 == 2);
 }
-
-int run(const std::string& filepath)
-{
-    TestController interpreter(std::make_unique<BasicTestRunner>());
-    return interpreter.executeTest(filepath);
-}
-
-} // namespace pep
