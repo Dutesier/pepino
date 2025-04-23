@@ -37,9 +37,11 @@ public:
         return instance;
     }
 
-    void registerAfterAll(std::function<void(const types::FeatureInfo&)>&& hook);
+    void registerAfterAll(
+        std::function<void(const types::FeatureInfo&)>&& hook);
     void executeAfterAll(const types::FeatureInfo& feature);
-    void registerBeforeAll(std::function<void(const types::FeatureInfo&)>&& hook);
+    void registerBeforeAll(
+        std::function<void(const types::FeatureInfo&)>&& hook);
     void executeBeforeAll(const types::FeatureInfo& feature);
 
     void registerBefore(std::function<void(const types::ScenarioInfo&)>&& hook);

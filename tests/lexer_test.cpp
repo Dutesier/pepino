@@ -54,7 +54,8 @@ TEST(LexerTest, TagToken)
     Lexer lexer(input);
     auto tokens = lexer.tokenize();
 
-    // The first token should be a Tag with the lexeme "@smoke", followed by EndOfFile.
+    // The first token should be a Tag with the lexeme "@smoke", followed by
+    // EndOfFile.
     ASSERT_EQ(tokens.size(), 2);
     EXPECT_EQ(tokens[0].type, TokenType::Tag);
     EXPECT_EQ(tokens[0].lexeme, "@smoke");
@@ -125,7 +126,8 @@ TEST(LexerTest, PlaceholderTokens)
     auto tokens = lexer.tokenize();
 
     // Expected token sequence:
-    // "Given" (StringLiteral or StepKeyword), "a" (StringLiteral), "user" (StringLiteral),
+    // "Given" (StringLiteral or StepKeyword), "a" (StringLiteral), "user"
+    // (StringLiteral),
     // "<" (LeftAngle), "username" (StringLiteral), ">" (RightAngle),
     // "exists" (StringLiteral), EOL, EndOfFile.
     for (auto& token : tokens)
@@ -134,7 +136,8 @@ TEST(LexerTest, PlaceholderTokens)
         std::cout << std::quoted(token.lexeme) << std::endl;
     }
     ASSERT_GE(tokens.size(), 9);
-    // Check that tokens 3, 4, 5 correspond to the placeholder delimiters and content.
+    // Check that tokens 3, 4, 5 correspond to the placeholder delimiters and
+    // content.
     EXPECT_EQ(tokens[3].type, TokenType::LeftAngle);
     EXPECT_EQ(tokens[4].type, TokenType::StringLiteral);
     EXPECT_EQ(tokens[4].lexeme, "username");

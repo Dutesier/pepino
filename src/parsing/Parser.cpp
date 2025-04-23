@@ -25,8 +25,7 @@
 namespace pep
 {
 
-Parser::Parser(const std::vector<Token>& tokens)
-    : m_tokens(tokens)
+Parser::Parser(const std::vector<Token>& tokens) : m_tokens(tokens)
 {
 }
 
@@ -77,14 +76,12 @@ std::string Parser::consumeLiteralUntilEOL()
         text.push_back(advance());
     }
     std::string literal = std::accumulate(
-        std::next(text.begin()),
-        text.end(),
-        text.front().lexeme,
-        [](const std::string& a, const Token& b)
-        {
+        std::next(text.begin()), text.end(), text.front().lexeme,
+        [](const std::string& a, const Token& b) {
             if (b.type != TokenType::StringLiteral)
             {
-                throw std::runtime_error("Expected StringLiteral, got: " + tokenAsString(b));
+                throw std::runtime_error("Expected StringLiteral, got: " +
+                                         tokenAsString(b));
             }
             return a + " " + b.lexeme;
         });
@@ -98,8 +95,10 @@ const Token& Parser::consume(TokenType type, const std::string& message)
         return advance();
     }
     Logger::error(
-        "Expected token of type: " + tokenAsString(Token{ .type = type }) + ", got: " + tokenAsString(peek()));
-    throw std::runtime_error(message + " at line " + std::to_string(peek().line));
+        "Expected token of type: " + tokenAsString(Token{.type = type}) +
+        ", got: " + tokenAsString(peek()));
+    throw std::runtime_error(message + " at line " +
+                             std::to_string(peek().line));
 }
 
 std::vector<std::string> Parser::parseTags()
@@ -122,7 +121,8 @@ std::unique_ptr<FeatureStatement> Parser::parseFeature()
     consume(TokenType::Feature, "Expected 'Feature' keyword");
     if (previous().lexeme != "Feature")
     {
-        throw std::runtime_error("Expected 'Feature' keyword, got " + previous().lexeme);
+        throw std::runtime_error("Expected 'Feature' keyword, got " +
+                                 previous().lexeme);
     }
     consume(TokenType::Colon, "Expected ':' after 'Feature'");
     feature->name = consumeLiteralUntilEOL();
@@ -215,7 +215,8 @@ std::unique_ptr<ScenarioStatement> Parser::parseScenarioStatement()
     return scenario;
 }
 
-std::unique_ptr<ScenarioOutlineStatement> Parser::parseScenarioOutlineStatement()
+std::unique_ptr<ScenarioOutlineStatement> Parser::
+    parseScenarioOutlineStatement()
 {
     auto outline = std::make_unique<ScenarioOutlineStatement>();
     // outline->tags = parseTags();
@@ -266,7 +267,8 @@ std::vector<std::string> Parser::parseTableRow()
         else
         {
             // If we don't find a pipe, we should break out of the loop.
-            Logger::warn("Expected '|' after cell value, found: " + peek().lexeme);
+            Logger::warn("Expected '|' after cell value, found: " +
+                         peek().lexeme);
             break;
         }
     }
@@ -296,7 +298,8 @@ std::unique_ptr<ExamplesStatement> Parser::parseExamplesStatement()
     // There must be at least one row (the header row).
     if (peek().type != TokenType::Pipe)
     {
-        throw std::runtime_error("Expected examples table row starting with '|'");
+        throw std::runtime_error(
+            "Expected examples table row starting with '|'");
     }
 
     // Parse header row.
@@ -340,9 +343,11 @@ std::unique_ptr<StepStatement> Parser::parseStepStatement()
         else if (peek().type == TokenType::LeftAngle)
         {
             advance();
-            auto var = consume(TokenType::StringLiteral, "Expected variable name").lexeme;
+            auto var =
+                consume(TokenType::StringLiteral, "Expected variable name")
+                    .lexeme;
             consume(TokenType::RightAngle, "Expected '>' after variable name");
-            step->text.push_back({ TokenType::Placeholder, var, peek().line });
+            step->text.push_back({TokenType::Placeholder, var, peek().line});
             step->variables[var] = ""; // Store the variable name.
         }
         else

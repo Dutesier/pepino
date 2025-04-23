@@ -41,7 +41,8 @@ TEST_F(PepinoStepsTest, pepinoRunsSingleStep)
     EXPECT_CALL(ctx.mockCb, Call()).Times(1);
     auto ret = pep::debug_runStep("tests/data/one_step.feature");
     EXPECT_EQ(ret, 0);
-    Mock::VerifyAndClearExpectations(&ctx.mockCb); // Needed for reporting in the actual test
+    Mock::VerifyAndClearExpectations(
+        &ctx.mockCb); // Needed for reporting in the actual test
 }
 
 TEST_F(PepinoStepsTest, typeAssertion)
@@ -51,29 +52,17 @@ TEST_F(PepinoStepsTest, typeAssertion)
     EXPECT_EQ(MyContext::getInstance().number, 42);
 }
 
-GIVEN_CTX(
-    MyContext,
-    "^a number (\\d+)$",
-    [](MyContext& ctx, int x)
-    {
-        std::cout << "Received int: " << x << std::endl;
-        ctx.mockCb.AsStdFunction()();
-    });
+GIVEN_CTX(MyContext, "^a number (\\d+)$", [](MyContext& ctx, int x) {
+    std::cout << "Received int: " << x << std::endl;
+    ctx.mockCb.AsStdFunction()();
+});
 
-GIVEN_CTX(
-    MyContext,
-    "^a name (\\w+)$",
-    [](MyContext& ctx, std::string name)
-    {
-        std::cout << "Received name: " << name << std::endl;
-        ctx.name = name;
-    });
+GIVEN_CTX(MyContext, "^a name (\\w+)$", [](MyContext& ctx, std::string name) {
+    std::cout << "Received name: " << name << std::endl;
+    ctx.name = name;
+});
 
-GIVEN_CTX(
-    MyContext,
-    "^a name (\\d+)$",
-    [](MyContext& ctx, int name)
-    {
-        std::cout << "Received name w/ number: " << name << std::endl;
-        ctx.number = name;
-    });
+GIVEN_CTX(MyContext, "^a name (\\d+)$", [](MyContext& ctx, int name) {
+    std::cout << "Received name w/ number: " << name << std::endl;
+    ctx.number = name;
+});
