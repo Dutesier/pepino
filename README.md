@@ -87,9 +87,7 @@ AFTER_STEP() {
 ### 4. Run a Feature
 
 ```cpp
-#include "pepino/Lexer.h"
-#include "pepino/Parser.h"
-#include "pepino/TestRunner.h"
+#include "pepino/pepino.h"
 
 int main() {
   return pep::run("pathToFeatureFile.feature");
