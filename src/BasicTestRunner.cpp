@@ -17,10 +17,10 @@
 #include "BasicTestRunner.h"
 
 #include "Logger.h"
-#include "hooks/HookRegistry.h"
 #include "parsing/Statement.h"
 #include "parsing/Token.h"
-#include "steps/StepRegistry.h"
+#include "pepino/hooks/HookRegistry.h"
+#include "pepino/steps/StepRegistry.h"
 
 #include <iostream>
 #include <memory>
