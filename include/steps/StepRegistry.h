@@ -15,6 +15,7 @@
  *******************************************************************************/
 #pragma once
 
+#include <exception>
 #include <functional>
 #include <iostream>
 #include <regex>
@@ -114,7 +115,7 @@ public:
         std::smatch match;
         if (!std::regex_match(stepText, match, best->pattern))
         {
-            throw std::runtime_error("Internal error: best candidate failed to match");
+            throw std::runtime_error("No matching step found for: (START)" + stepText + "(END)");
         }
 
         std::vector<std::string> captures;
@@ -123,6 +124,33 @@ public:
 
         best->func(captures);
     }
+
+    class UnimplementedStepException : public std::exception
+    {
+    public:
+        explicit UnimplementedStepException(const std::string& message)
+            : m_message("Unimplemented step: " + message)
+        {
+        }
+        const char* what() const noexcept override { return m_message.c_str(); }
+
+    private:
+        std::string m_message;
+    };
+
+    class FailedStepException : public std::exception
+    {
+    public:
+        explicit FailedStepException(const std::string& message)
+            : m_prefix("Step failed: " + message)
+        {
+        }
+
+        const char* what() const noexcept override { return m_prefix.c_str(); }
+
+    private:
+        std::string m_prefix = "Step failed: ";
+    };
 
 private:
     std::vector<StepDefinitionPtr> steps;
