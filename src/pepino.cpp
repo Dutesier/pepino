@@ -14,7 +14,7 @@
  *
  *******************************************************************************/
 
-#include "pepino.h"
+#include "pepino/pepino.h"
 #include "BasicTestRunner.h"
 #include "TestController.h"
 

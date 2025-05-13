@@ -26,8 +26,14 @@ set(SRC_FILES
     )
 
 add_library(Pepino ${SRC_FILES})
-target_include_directories(Pepino PUBLIC include)
 
+# Expose the public include directory
+set(PEPINO_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(Pepino
+    PUBLIC
+        $<BUILD_INTERFACE:${PEPINO_INC_DIR}>
+        $<INSTALL_INTERFACE:include>
+)
 
 find_package(GTest)
 

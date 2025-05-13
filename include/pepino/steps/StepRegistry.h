@@ -26,8 +26,8 @@
 #include <vector>
 
 #include "TypeConverters.h"
-#include "context.h"
-#include "types/types.h"
+#include "pepino/context.h"
+#include "pepino/types/types.h"
 
 namespace pep
 {
