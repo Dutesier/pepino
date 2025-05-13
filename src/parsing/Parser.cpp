@@ -95,7 +95,7 @@ const Token& Parser::consume(TokenType type, const std::string& message)
         return advance();
     }
     Logger::error(
-        "Expected token of type: " + tokenAsString(Token{.type = type}) +
+        "Expected token of type: " + tokenAsString(Token{.type = type, .lexeme = {}, .line = {}}) +
         ", got: " + tokenAsString(peek()));
     throw std::runtime_error(message + " at line " +
                              std::to_string(peek().line));
